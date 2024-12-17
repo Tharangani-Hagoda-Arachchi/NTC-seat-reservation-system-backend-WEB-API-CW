@@ -1,5 +1,5 @@
-import User from '../models/user_model.js';
-import { AppError } from '../utils/error_handler.js'; 
+import User from '../models/userModel.js';
+import { AppError } from '../utils/errorHandler.js'; 
 
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';

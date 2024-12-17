@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import {AppError} from '../utils/error_handler.js'
+import {AppError} from '../utils/errorHandler.js'
 
 //use validation scema
 const userValidationSchema = Joi.object({

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import userSequence from "./sequence_model.js";
+import userSequence from "./sequenceModel.js";
 import Joi from 'joi';
 import bcrypt from 'bcrypt';
 

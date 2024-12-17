@@ -1,6 +1,6 @@
 import express from 'express';
-import {signup,login} from '../controllers/auth_controller.js';
-import validateSignup from '../validators/user_validator.js';
+import {signup,login} from '../controllers/authController.js';
+import validateSignup from '../validators/userValidator.js';
 const authrouter  = express.Router();
 
 authrouter.post('/signup',validateSignup,signup);
