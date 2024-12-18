@@ -1,8 +1,12 @@
 import User from '../models/userModel.js';
 import { AppError } from '../utils/errorHandler.js'; 
-
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+dotenv.config();
+
+
+
 
 const jwtSecret = process.env.JWT_SECRET
 
@@ -17,12 +21,19 @@ export const signup = async (req, res, next) => {
             return res.status(400).json({ message: 'Email is already registered' });
         }
 
+        const allowedRoles = new Set(['commuter', 'operator']);
+        if (!allowedRoles.has(role.toLowerCase())) {
+            return res.status(400).json({ 
+                message: `Invalid role: '${role}'. Please choose a valid role: ${Array.from(allowedRoles).join(', ')}.` 
+            });
+        }
+
         // create nwe user
         const newUser = new User({
             name,
             email,
             password,
-            role: role || 'commuter'
+            role: role 
         });
 
         await newUser.save();
@@ -56,8 +67,15 @@ export const login = async (req, res, next) => {
         if (!passwordMatch) {
             throw new AppError('Email or Password invalid', 401, 'AuthenticationError');
         }
-        res.status(200).json({success: true,message: 'Login successful'});
 
+        //create jwt token
+        const accessToken = jwt.sign({userId: user.userId}, jwtSecret, { subject: 'AccessAPI', expiresIn: '1h'})
+
+        res.status(200).json({
+            success: true,
+            message: 'Login successful',
+            accessToken
+        });
 
     } catch(error){
         next(error)

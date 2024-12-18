@@ -20,7 +20,7 @@ const userValidationSchema = Joi.object({
             'string.empty': 'Password is required',
         }),
     
-    role: Joi.string().valid('operator', 'admin', 'commuter').optional(),
+    role: Joi.string().valid('operator', 'admin', 'commuter'),
 });
 
 //middleware function to validate signup
