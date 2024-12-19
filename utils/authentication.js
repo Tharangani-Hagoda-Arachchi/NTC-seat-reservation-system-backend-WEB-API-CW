@@ -1,10 +1,12 @@
 import User from '../models/userModel.js'
+import RefreshToken from '../models/refreshTokenModel.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 dotenv.config();
 
 
-const jwtSecret = process.env.JWT_SECRET
+const jwtSecret = process.env.JWT_SECRET;
+const refreshTokenSecret = process.env.REFRESH_SECRET;
 
 export const ensureAuthentication = async(req,res,next) => {
     try{
@@ -20,13 +22,10 @@ export const ensureAuthentication = async(req,res,next) => {
         next()
 
     }catch(error){
-        
-        //return res.status(401).json({ message: 'Access Token invalid or expire'});
-        next(error)
-        
+        next(error)       
     }
 
-}
+};
 
 export function authorize(roles =[]){
     return async function (req,res,next) {
@@ -43,4 +42,26 @@ export function authorize(roles =[]){
             next(error)
         }    
     }
-}
+};
+
+//create refresh token
+export const generateRefreshToken = async (user) => {
+    try {
+
+      //create refresh token
+      const token = jwt.sign({userId: user.userId}, refreshTokenSecret, { subject: 'AccessAPI', expiresIn: '1w'})
+
+      // Save refresh token in the database
+      const refreshToken = new RefreshToken({
+        userId: user.userId,
+        token,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days expiry
+      });
+  
+      await refreshToken.save();
+     return token; // Return the refresh token
+      
+    } catch (error) {
+        throw(error)    
+    }
+  };

@@ -1,10 +1,12 @@
 import express from 'express';
 import {signup,login} from '../controllers/authController.js';
 import validateSignup from '../validators/userValidator.js';
+import { refreshTokenGeneration } from '../controllers/authController.js';
 const authrouter  = express.Router();
 
 authrouter.post('/signup',validateSignup,signup);
 authrouter.post('/login',login);
+authrouter.post('/token',refreshTokenGeneration);
 
 export default authrouter;
 
