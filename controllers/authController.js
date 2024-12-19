@@ -82,7 +82,8 @@ export const login = async (req, res, next) => {
         res.status(200).json({
             success: true,
             message: 'Login successful',
-            accessToken
+            accessToken,
+            refreshToken
         });
 
     } catch(error){
@@ -96,13 +97,13 @@ export const refreshTokenGeneration = async (req, res, next) => {
         const requestRefreshToken = req.cookies.refreshToken;
         
         if (!requestRefreshToken) {
-            throw new AppError('Refresh Token not found', 401, 'ValidationError');
+            throw new AppError('Refresh Token not found', 400, 'ValidationError');
         }
 
         const decodeRefreshToken =jwt.verify(requestRefreshToken,refreshTokenSecret);// decode refresh token
 
         if (!decodeRefreshToken || !decodeRefreshToken.userId) {
-            throw new AppError('Invalid Refresh Token payload', 401, 'ValidationError');
+            throw new AppError('Invalid Refresh Token payload', 400, 'ValidationError');
         }
         
         const userRefreshToken = await RefreshToken.findOne({token:requestRefreshToken, userId: decodeRefreshToken.userId,});
@@ -128,7 +129,7 @@ export const refreshTokenGeneration = async (req, res, next) => {
 
     } catch(error){
         if (error instanceof jwt.TokenExpiredError || error instanceof jwt.JsonWebTokenError){
-            throw new AppError('Refresh Token invalid or expired', 401, 'ValidationError');
+            throw new AppError('Refresh Token invalid or expired', 401, 'AuthenticationError');
         }
         next(error)
     }
