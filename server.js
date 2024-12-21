@@ -2,6 +2,7 @@ import DBConnect from "./db_config.js"
 import {errorMiddleware} from './utils//errorHandler.js'
 import { swaggerUi,swaggerDocs } from "./swagger.js";
 import authrouter from "./routes/authRoutes.js"
+import adminrouter from "./routes/adminRoutes.js";
 
 import express from 'express'
 import cors from 'cors'
@@ -19,7 +20,9 @@ app.use(cookieParser());
 //swagger setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
+
 app.use('/api/auths',authrouter)
+app.use('/api',adminrouter)
 
 DBConnect();
 

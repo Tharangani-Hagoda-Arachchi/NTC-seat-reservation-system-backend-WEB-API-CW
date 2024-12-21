@@ -14,6 +14,20 @@ const swaggerOptions = {
           url: 'http://localhost:4000', // API server URL
         },
       ],
+      components: {
+        securitySchemes: {
+          BearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+          },
+        },
+      },
+      security: [
+        {
+          BearerAuth: [],
+        },
+      ],
     },
     apis: ['./routes/*.js'], // Path to the route files
   };
