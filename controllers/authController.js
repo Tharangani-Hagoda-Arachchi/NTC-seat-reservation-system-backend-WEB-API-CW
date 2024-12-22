@@ -70,7 +70,7 @@ export const adminLogin = async (req, res, next) => {
         }
 
         //create jwt token
-        const accessToken = jwt.sign({adminId: admin._id}, jwtSecret, { subject: 'AccessAPI', expiresIn: '1m'})
+        const accessToken = jwt.sign({adminId: admin._id}, jwtSecret, { subject: 'AccessAPI', expiresIn: '15m'})
 
         // create refresh token
         const refreshToken = await generateRefreshToken(admin,'admin');
@@ -117,7 +117,7 @@ export const operatorLogin = async (req, res, next) => {
         }
 
         //create jwt token
-        const accessToken = jwt.sign({operatorId: operator._id}, jwtSecret, { subject: 'AccessAPI', expiresIn: '1m'})
+        const accessToken = jwt.sign({operatorId: operator._id}, jwtSecret, { subject: 'AccessAPI', expiresIn: '15m'})
 
         // create refresh token
         const refreshToken = await generateRefreshToken(operator,'operator');
@@ -160,7 +160,7 @@ export const commuterLogin = async (req, res, next) => {
         }
 
         //create jwt token
-        const accessToken = jwt.sign({commuterId: commuter._id}, jwtSecret, { subject: 'AccessAPI', expiresIn: '1m'})
+        const accessToken = jwt.sign({commuterId: commuter._id}, jwtSecret, { subject: 'AccessAPI', expiresIn: '15m'})
 
         // create refresh token
         const refreshToken = await generateRefreshToken(commuter,'commuter');
@@ -173,6 +173,7 @@ export const commuterLogin = async (req, res, next) => {
             accessToken,
             refreshToken
         });
+        
         
 
     } catch(error){

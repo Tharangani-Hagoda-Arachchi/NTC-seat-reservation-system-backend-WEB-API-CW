@@ -1,12 +1,12 @@
 import express from 'express';
 import { addAdmin,getAdminById,getAdmin,deleteAdmin,updateAdminEmailAndPassword } from '../controllers/adminController.js';
 import validateAddAdmin from '../validators/adminValidator.js';
-//import { authorize, ensureAuthentication } from '../utils/authentication.js';
+import { authorize, ensureAuthentication } from '../utils/authentication.js';
 const adminrouter  = express.Router();
 
 adminrouter.post('/admins',validateAddAdmin,addAdmin);
 adminrouter.get('/admins/:adminId',getAdminById);
-adminrouter.get('/admins',getAdmin);
+adminrouter.get('/admins',ensureAuthentication,authorize(['admin']),getAdmin);
 adminrouter.delete('/admins/:adminId',deleteAdmin);
 adminrouter.patch('/admins/:adminId',updateAdminEmailAndPassword);
 

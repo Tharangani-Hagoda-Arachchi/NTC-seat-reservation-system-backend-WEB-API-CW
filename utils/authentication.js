@@ -2,6 +2,9 @@ import User from '../models/commuterModel.js'
 import RefreshToken from '../models/refreshTokenModel.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import Admin from '../models/adminModel.js';
+import Operator from '../models/operatorModel.js';
+import Commuter from '../models/commuterModel.js';
 dotenv.config();
 
 
@@ -10,19 +13,32 @@ const refreshTokenSecret = process.env.REFRESH_SECRET;
 
 export const ensureAuthentication = async(req,res,next) => {
     try{
-        const accessToken = req.headers.authorization
+        const authHeader = req.headers.authorization
 
-        if(!accessToken){
+        if(!authHeader || !authHeader.startsWith('Bearer ')){
             return res.status(401).json({ message: 'Access token is not found'})      
         }
+        const accessToken = authHeader.split(' ')[1]
 
         const decodeAccesstoken = jwt.verify(accessToken,jwtSecret)
-        req.user ={ userId: decodeAccesstoken.userId}
-
+        if (decodeAccesstoken.adminId) {
+            req.admin = { adminId: decodeAccesstoken.adminId };
+        } else if (decodeAccesstoken.operatorId) {
+            req.operator = { operatorId: decodeAccesstoken.operatorId };
+        } else if (decodeAccesstoken.commuteId) {
+            req.commuter = { commuterId: decodeAccesstoken.commuterId };
+        } else {
+            return res.status(403).json({ message: 'Invalid token payload' });
+        }
         next()
-
     }catch(error){
-        next(error)       
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ message: 'Token has expired login again' });
+        }
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Invalid token' });
+        }       
+        next(error);        
     }
 
 };
@@ -30,12 +46,21 @@ export const ensureAuthentication = async(req,res,next) => {
 export function authorize(roles =[]){
     return async function (req,res,next) {
         try{
-            const user = await User.findOne({userId: req.user.userId})
+            let entityType = null;
 
-            if (!user || !roles.includes(user.role)){
-                return res.status(403).json({message: 'Access Denied'})
+            console.log('req.admin:', req.admin);
+
+            if (req.admin && roles.includes('admin')) {
+                entityType = await Admin.findById(req.admin.adminId);
+            } else if (req.operator && roles.includes('operator')) {
+                entityType = await Operator.findById(req.operator.operatorId);
+            } else if (req.commuter && roles.includes('commuter')) {
+                entityType = await Commuter.findById(req.commuter.commuterId);
             }
 
+            if (!entityType) {
+                return res.status(403).json({ message: 'Forbidden: Access Denied' });
+            }
             next()
             
         }catch(error){

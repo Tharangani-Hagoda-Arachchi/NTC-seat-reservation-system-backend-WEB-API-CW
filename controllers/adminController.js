@@ -87,6 +87,7 @@ export const getAdmin = async (req, res, next) => {
                 adminEmail: admin.adminEmail
             }))
         });
+        next()
 
     } catch (error) {
         next(error); // Pass error to the global error handler
