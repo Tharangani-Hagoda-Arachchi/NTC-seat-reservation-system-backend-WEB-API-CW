@@ -2,6 +2,10 @@ import Admin from "../models/adminModel.js";
 import { AppError } from '../utils/errorHandler.js'; 
 import bcrypt from 'bcrypt';
 
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); // Basic email regex
+const isValidPassword = (password) => /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{6,}$/.test(password); // At least 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char
+
+
 export const addAdmin = async (req, res, next) => {
     try{
         const { adminId,adminName, adminEmail,adminPassword } = req.body
@@ -43,7 +47,7 @@ export const getAdminById = async (req, res, next) => {
 
         // Validate the admin id
         if (!adminId) {
-            throw new AppError('Route no required', 422, 'ValidationError');
+            throw new AppError('Id required', 422, 'ValidationError');
         }
 
         // Search for admin with the given id
@@ -120,6 +124,15 @@ export const updateAdminEmailAndPassword = async (req, res, next) => {
         // Validate the email and password and Id
         if (!adminEmail || !adminPassword )  {
             throw new AppError('email, password are required', 422, 'ValidationError');
+        }
+
+        if (!isValidEmail(adminEmail)) {
+            throw new AppError('Invalid email format', 422, 'ValidationError');
+        }
+
+        // Validate password format
+        if (!isValidPassword(adminPassword)) {
+            throw new AppError('Password must be at least 6 characters, include an uppercase letter, a lowercase letter, a number, and a special character', 422, 'ValidationError');
         }
         
         const hashedpassword = await bcrypt.hash(adminPassword, 10);
