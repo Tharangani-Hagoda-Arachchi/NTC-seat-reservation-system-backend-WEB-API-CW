@@ -3,20 +3,20 @@ import userSequence from "./sequenceModel.js";
 import Joi from 'joi';
 import bcrypt from 'bcrypt';
 
-// Define the User Schema
-const userSchema = new mongoose.Schema({
-    userId: {
+// Define the commuter Schema
+const commuterSchema = new mongoose.Schema({
+    commuterId: {
         type: String,
         unique: true
     },
 
-    name: {
+    commuterName: {
         type: String,
         required: true,
         trim: true
     },
     
-    email: {
+    commuterEmail: {
         type: String,
         required: true,
         unique: true,
@@ -27,15 +27,10 @@ const userSchema = new mongoose.Schema({
             'Please fill a valid email address'
         ]
     },
-    password: {
+    commuterPassword: {
         type: String,
         required: true,
        
-        
-    },
-    role: {
-        type: String,
-        enum: ['operator', 'admin', 'commuter'], 
         
     }
 }, );
@@ -48,26 +43,26 @@ const passwordSchema = Joi.string()
         'string.pattern.base': 'Password must include uppercase, lowercase, number, special character, and be at least 6 characters long',
     });
 
-userSchema.pre('save', async function (next) {
+commuterSchema.pre('save', async function (next) {
     if (this.isNew) {
         try {
             const sequence = await userSequence.findOneAndUpdate(
-                { name: 'userId' },
+                { name: 'commuterId' },
                 { $inc: { value: 1 } },
                 { new: true, upsert: true } // Create if it doesn't exist
             );
 
             const formattedId = String(sequence.value).padStart(5, '0'); // Pads with leading zeros to 5 digits
-            this.userId = `USER-${formattedId}`;
+            this.commuterId = `USER-${formattedId}`;
 
             //password vlidation 
-            const { error } = passwordSchema.validate(this.password);
+            const { error } = passwordSchema.validate(this.commuterPassword);
             if (error) {
                 return next(new Error(error.details[0].message)); // Return validation error if password doesn't meet requirements
             }
             
             //hash password
-            this.password = await bcrypt.hash(this.password, 10);
+            this.commuterPassword = await bcrypt.hash(this.commuterPassword, 10);
 
             next();
         } catch (error) {
@@ -78,7 +73,7 @@ userSchema.pre('save', async function (next) {
     }
 });
 
-// Create the User model
-const User = mongoose.model('User', userSchema);
+// Create the commuter model
+const Commuter = mongoose.model('Commuter', commuterSchema);
 
-export default User;
+export default Commuter;

@@ -1,4 +1,4 @@
-import User from '../models/userModel.js'
+import User from '../models/commuterModel.js'
 import RefreshToken from '../models/refreshTokenModel.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';

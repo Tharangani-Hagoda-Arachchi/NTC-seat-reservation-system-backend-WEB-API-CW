@@ -1,46 +1,36 @@
-import User from '../models/userModel.js';
 import RefreshToken from '../models/refreshTokenModel.js';
 import { generateRefreshToken } from '../utils/authentication.js';
 import { AppError } from '../utils/errorHandler.js'; 
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import Commuter from '../models/commuterModel.js';
 dotenv.config();
-
-
 
 
 const jwtSecret = process.env.JWT_SECRET;
 const refreshTokenSecret = process.env.REFRESH_SECRET;
 
-// signup
-export const signup = async (req, res, next) => {
+// commuter signup
+export const commuterSignup = async (req, res, next) => {
     try{
-        const { name, email,password,role } = req.body
+        const { commuterName, commuterEmail,commuterPassword } = req.body
 
         // check email is already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
+        const existingCommuter = await Commuter.findOne({ commuterEmail });
+        if (existingCommuter) {
             return res.status(400).json({ message: 'Email is already registered' });
         }
 
-        //check roles are only commuter or operator
-        const allowedRoles = new Set(['commuter', 'operator']);
-        if (!allowedRoles.has(role.toLowerCase())) {
-            return res.status(400).json({ 
-                message: `Invalid role: '${role}'. Please choose a valid role: ${Array.from(allowedRoles).join(', ')}.` 
-            });
-        }
 
-        // create nwe user
-        const newUser = new User({
-            name,
-            email,
-            password,
-            role: role 
+        // create nwe Commuter
+        const newCommuter = new Commuter({
+            commuterName,
+            commuterEmail,
+            commuterPassword
         });
 
-        await newUser.save();
+        await newCommuter.save();
 
         res.status(201).json({ message: 'Signup successful' });
 

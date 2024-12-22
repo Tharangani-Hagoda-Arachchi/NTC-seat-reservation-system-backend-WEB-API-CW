@@ -2,7 +2,7 @@ import Joi from 'joi';
 import {AppError} from '../utils/errorHandler.js'
 
 //use validation scema
-const userValidationSchema = Joi.object({
+const commuterValidationSchema = Joi.object({
     name: Joi.string().min(3).max(50).required().messages({
         'string.empty': 'Name is required',
         'string.min': 'Name must be at least 3 characters',
@@ -20,13 +20,12 @@ const userValidationSchema = Joi.object({
             'string.empty': 'Password is required',
         }),
     
-    role: Joi.string().valid('operator', 'admin', 'commuter'),
 });
 
 //middleware function to validate signup
 const validateSignup = (req, res, next) => {
    
-    const { error } = userValidationSchema.validate(req.body, { abortEarly: false });
+    const { error } = commuterValidationSchema.validate(req.body, { abortEarly: false });
     if (error) {
         const errorMessages = error.details.map(err => err.message);
         return next(new AppError(
