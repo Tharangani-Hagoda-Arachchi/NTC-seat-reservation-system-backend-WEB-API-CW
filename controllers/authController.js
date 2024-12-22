@@ -5,6 +5,8 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import Commuter from '../models/commuterModel.js';
+import Admin from '../models/adminModel.js';
+import Operator from '../models/operatorModel.js';
 dotenv.config();
 
 
@@ -40,46 +42,145 @@ export const commuterSignup = async (req, res, next) => {
     }
 };
 
-//Login
-export const login = async (req, res, next) => {
+
+//Admin Login
+export const adminLogin = async (req, res, next) => {
     try{
-        const { email,password} = req.body
+        const { adminEmail,adminPassword,adminId} = req.body
         
-        if (!email || !password) {
-            throw new AppError('Email and password are required', 422, 'ValidationError');
+        if (!adminEmail || !adminPassword || !adminId) {
+            throw new AppError('Email password and ID are required', 422, 'ValidationError');
         }
 
-        const user = await User.findOne({email})
+        const admin = await Admin.findOne({adminId})
 
-        if (!user){
-            throw new AppError('Email or Password invalid', 401, 'AuthenticationError');
-        
+        if (!admin){
+            throw new AppError('Not Eligible for Admin logins', 401, 'AuthenticationError');
         }
-        
-        const passwordMatch = await bcrypt.compare(password, user.password)
+        const matchEmail = await Admin.findOne({adminEmail})
+
+        if (!matchEmail){
+            throw new AppError('Email or password Invalid', 401, 'AuthenticationError');
+        }
+
+        const passwordMatch = await bcrypt.compare(adminPassword, admin.adminPassword)
 
         if (!passwordMatch) {
             throw new AppError('Email or Password invalid', 401, 'AuthenticationError');
         }
 
         //create jwt token
-        const accessToken = jwt.sign({userId: user.userId}, jwtSecret, { subject: 'AccessAPI', expiresIn: '1h'});
-         
+        const accessToken = jwt.sign({adminId: admin._id}, jwtSecret, { subject: 'AccessAPI', expiresIn: '1m'})
+
         // create refresh token
-         const refreshToken = await generateRefreshToken(user);
+        const refreshToken = await generateRefreshToken(admin,'admin');
 
         res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true }); // HTTP-only cookie for refresh token
+       
         res.status(200).json({
             success: true,
             message: 'Login successful',
             accessToken,
             refreshToken
         });
+        
 
     } catch(error){
         next(error)
     }
 };
+
+//operator login
+export const operatorLogin = async (req, res, next) => {
+    try{
+        const { operatorEmail,operatorPassword,operatorRegisteredId} = req.body
+        
+        if (!operatorEmail || !operatorPassword || !operatorRegisteredId) {
+            throw new AppError('Email password and registered ID are required', 422, 'ValidationError');
+        }
+
+        const operator = await Operator.findOne({operatorRegisteredId})
+
+        if (!operator){
+            throw new AppError('Not Eligible for Operator logins', 401, 'AuthenticationError');
+        }
+        const matchEmail = await Operator.findOne({operatorEmail})
+
+        if (!matchEmail){
+            throw new AppError('Email or password Invalid', 401, 'AuthenticationError');
+        }
+
+        const passwordMatch = await bcrypt.compare(operatorPassword, operator.operatorPassword)
+
+        if (!passwordMatch) {
+            throw new AppError('Email or Password invalid', 401, 'AuthenticationError');
+        }
+
+        //create jwt token
+        const accessToken = jwt.sign({operatorId: operator._id}, jwtSecret, { subject: 'AccessAPI', expiresIn: '1m'})
+
+        // create refresh token
+        const refreshToken = await generateRefreshToken(operator,'operator');
+
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true }); // HTTP-only cookie for refresh token
+       
+        res.status(200).json({
+            success: true,
+            message: 'Login successful',
+            accessToken,
+            refreshToken
+        });
+        
+
+    } catch(error){
+        next(error)
+    }
+};
+
+
+//commuter login
+export const commuterLogin = async (req, res, next) => {
+    try{
+        const { commuterEmail,commuterPassword} = req.body
+        
+        if (!commuterEmail || !commuterPassword) {
+            throw new AppError('Email password are required', 422, 'ValidationError');
+        }
+
+        const commuter = await Commuter.findOne({commuterEmail})
+
+        if (!commuter){
+            throw new AppError('Email password are invalid', 401, 'AuthenticationError');
+        }
+
+        const passwordMatch = await bcrypt.compare(commuterPassword, commuter.commuterPassword)
+
+        if (!passwordMatch) {
+            throw new AppError('Email or Password invalid', 401, 'AuthenticationError');
+        }
+
+        //create jwt token
+        const accessToken = jwt.sign({commuterId: commuter._id}, jwtSecret, { subject: 'AccessAPI', expiresIn: '1m'})
+
+        // create refresh token
+        const refreshToken = await generateRefreshToken(commuter,'commuter');
+
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true }); // HTTP-only cookie for refresh token
+       
+        res.status(200).json({
+            success: true,
+            message: 'Login successful',
+            accessToken,
+            refreshToken
+        });
+        
+
+    } catch(error){
+        next(error)
+    }
+}
+
+
 
 // create refresh token
 export const refreshTokenGeneration = async (req, res, next) => {

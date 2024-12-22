@@ -44,24 +44,35 @@ export function authorize(roles =[]){
     }
 };
 
-//create refresh token
-export const generateRefreshToken = async (user) => {
+/// Create refresh token for admin operator commuter
+export const generateRefreshToken = async (entity, type) => {
     try {
+        const validTypes = ['admin', 'operator', 'commuter'];
+        if (!validTypes.includes(type)) {
+            throw new Error('Invalid type. Must be "admin", "operator", or "commuter".');
+        }
 
-      //create refresh token
-      const token = jwt.sign({userId: user.userId}, refreshTokenSecret, { subject: 'AccessAPI', expiresIn: '1w'})
+       // Generate payload dynamically using MongoDB _id
+        const payload = { [`${type}Id`]: entity._id };
+        const entityId = entity._id;
 
-      // Save refresh token in the database
-      const refreshToken = new RefreshToken({
-        userId: user.userId,
-        token,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days expiry
-      });
-  
-      await refreshToken.save();
-     return token; // Return the refresh token
-      
+        // Create refresh token
+        const token = jwt.sign(payload, refreshTokenSecret, { 
+            subject: 'AccessAPI', 
+            expiresIn: '1w' 
+        });
+
+        // Save refresh token in the database
+        const refreshToken = new RefreshToken({
+            [`${type}Id`]: entityId, // Dynamic key assignment using _id
+            token,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days expiry
+        });
+
+        await refreshToken.save();
+        return token; // Return the refresh token
+
     } catch (error) {
-        throw(error)    
+        throw error;    
     }
-  };
+};

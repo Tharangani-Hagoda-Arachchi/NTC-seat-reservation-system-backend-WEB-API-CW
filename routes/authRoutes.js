@@ -1,11 +1,13 @@
 import express from 'express';
-import {commuterSignup,login} from '../controllers/authController.js';
+import {commuterSignup,adminLogin,operatorLogin,commuterLogin} from '../controllers/authController.js';
 import validateSignup from '../validators/userValidator.js';
 import { refreshTokenGeneration } from '../controllers/authController.js';
 const authrouter  = express.Router();
 
 authrouter.post('/signup',validateSignup,commuterSignup);
-authrouter.post('/login',login);
+authrouter.post('/admin/login',adminLogin);
+authrouter.post('/operator/login',operatorLogin);
+authrouter.post('/commuter/login',commuterLogin);
 authrouter.post('/token',refreshTokenGeneration);
 
 export default authrouter;
@@ -18,7 +20,7 @@ export default authrouter;
  * /api/auths/signup:
  *   post:
  *     summary: User Registration
- *     description: Create a new user account with validation rules for name, email, password, and role.
+ *     description: Create a new user account with validation rules for name, email, password
  *     tags:
  *       - Authentication
  *     requestBody:
@@ -28,20 +30,19 @@ export default authrouter;
  *           schema:
  *             type: object
  *             required:
- *               - name
- *               - email
- *               - password
- *               - role
+ *               - commuterName
+ *               - commuterEmail
+ *               - commuterPassword
  *             properties:
- *               name:
+ *               commuterName:
  *                 type: string
- *                 description: User's  name (3-50 characters).
+ *                 description: User's name (3-50 characters).
  *                 example: Nimal Perera
- *               email:
+ *               commuterEmail:
  *                 type: string
  *                 description: A valid email address.
  *                 example: nimal@example.com
- *               password:
+ *               commuterPassword:
  *                 type: string
  *                 description: >
  *                   A password that includes:
@@ -51,15 +52,7 @@ export default authrouter;
  *                   - At least one number
  *                   - At least one special character
  *                 example: P@ssword123
- *               role:
- *                 type: string
- *                 description: |
- *                   User's role in the system. Must be one of:
- *                   - operator
- *                   - admin
- *                   - commuter
- *                 enum: [operator, admin, commuter]
- *                 example: operator
+ *
  *     responses:
  *       201:
  *         description: User registered successfully.
@@ -71,7 +64,6 @@ export default authrouter;
  *                 message:
  *                   type: string
  *                   example: "User registered successfully."
- *                
  *       400:
  *         description: Validation error.
  *         content:
@@ -90,7 +82,7 @@ export default authrouter;
  *                   example: ValidationError
  *                 message:
  *                   type: string
- *                   example: "Validation failed"
+ *                   example: "Validation failed."
  *                 details:
  *                   type: array
  *                   items:
@@ -116,7 +108,7 @@ export default authrouter;
  *                   example: ConflictError
  *                 message:
  *                   type: string
- *                   example: " email already exists."
+ *                   example: "Email already exists."
  *       500:
  *         description: Internal server error.
  *         content:
@@ -140,14 +132,15 @@ export default authrouter;
 
 
 
-//Login swagger documentation
+
+// Admin Login swagger documentation
 
 /**
  * @swagger
- * /api/auths/login:
+ * /api/auths/admin/login:
  *   post:
- *     summary: User Login
- *     description: Log in to the system by providing a registered email and password.
+ *     summary: Admin Login
+ *     description: Log in to the system by providing a registered email and password and adminID.
  *     tags:
  *       - Authentication
  *     requestBody:
@@ -157,17 +150,22 @@ export default authrouter;
  *           schema:
  *             type: object
  *             required:
- *               - email
- *               - password
+ *               - adminEmail
+ *               - adminPassword
+ *               - adminId
  *             properties:
- *               email:
+ *               adminEmail:
  *                 type: string
  *                 description: Registered email address.
  *                 example: user@example.com
- *               password:
+ *               adminPassword:
  *                 type: string
- *                 description: User's password.
+ *                 description: Admin's password.
  *                 example: P@ssword123
+ *               adminId:
+ *                 type: string
+ *                 description: admin's registered ID.
+ *                 example: NTC-ADMIN-0001
  *     responses:
  *       200:
  *         description: Login successfully.
@@ -220,7 +218,7 @@ export default authrouter;
  *                   items:
  *                     type: string
  *                   example:
- *                     - "Email and password are required."
+ *                     - "Email and password and ID are required."
  *       401:
  *         description: Authentication error.
  *         content:
@@ -239,7 +237,7 @@ export default authrouter;
  *                   example: AuthenticationError
  *                 message:
  *                   type: string
- *                   example: "Email or password is invalid."
+ *                   example: "invalid email or password."
  *       500:
  *         description: Internal server error.
  *         content:
@@ -282,7 +280,295 @@ export default authrouter;
 
 
 
-// token swagger documentation
+// Operator Login swagger documentation
+
+/**
+ * @swagger
+ * /api/auths/operator/login:
+ *   post:
+ *     summary: Operator Login
+ *     description: Log in to the system by providing a registered email and password and operator ID.
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - operatorEmail
+ *               - operatorPassword
+ *               - operatorRegisteredId
+ *             properties:
+ *               operatorEmail:
+ *                 type: string
+ *                 description: Registered email address.
+ *                 example: user@example.com
+ *               operatorPassword:
+ *                 type: string
+ *                 description: Admin's password.
+ *                 example: P@ssword123
+ *               operatorRegisteredId:
+ *                 type: string
+ *                 description: admin's registered ID.
+ *                 example: NTC-OPE-0001
+ *     responses:
+ *       200:
+ *         description: Login successfully.
+ *         headers:
+ *           Set-Cookie:
+ *             description: >
+ *               Sets the refreshToken as an HTTP-only, secure cookie.
+ *               This cookie is used for maintaining a session.
+ *             schema:
+ *               type: string
+ *               example: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Login Successful."
+ *                 accessToken:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                 refreshToken:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *       422:
+ *         description: Validation error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 422
+ *                 errorType:
+ *                   type: string
+ *                   example: ValidationError
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed."
+ *                 details:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example:
+ *                     - "Email and password and ID are required."
+ *       401:
+ *         description: Authentication error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthenticationError
+ *                 message:
+ *                   type: string
+ *                   example: "invalid email or password."
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 500
+ *                 errorType:
+ *                   type: string
+ *                   example: ServerError
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error."
+ *       400:
+ *         description: Cast error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 400
+ *                 errorType:
+ *                   type: string
+ *                   example: CastError
+ *                 message:
+ *                   type: string
+ *                   example: "Database error."
+ */
+
+
+
+// Commuter Login swagger documentation
+
+/**
+ * @swagger
+ * /api/auths/commuter/login:
+ *   post:
+ *     summary: Commuter Login
+ *     description: Log in to the system by providing a registered email and password.
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - commuterEmail
+ *               - commuterPassword
+ *             properties:
+ *               commuterEmail:
+ *                 type: string
+ *                 description: Registered email address.
+ *                 example: user@example.com
+ *               commuterPassword:
+ *                 type: string
+ *                 description: Admin's password.
+ *                 example: P@ssword123
+ *
+ *     responses:
+ *       200:
+ *         description: Login successfully.
+ *         headers:
+ *           Set-Cookie:
+ *             description: >
+ *               Sets the refreshToken as an HTTP-only, secure cookie.
+ *               This cookie is used for maintaining a session.
+ *             schema:
+ *               type: string
+ *               example: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Login Successful."
+ *                 accessToken:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                 refreshToken:
+ *                   type: string
+ *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *       422:
+ *         description: Validation error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 422
+ *                 errorType:
+ *                   type: string
+ *                   example: ValidationError
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed."
+ *                 details:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example:
+ *                     - "Email and password and ID are required."
+ *       401:
+ *         description: Authentication error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthenticationError
+ *                 message:
+ *                   type: string
+ *                   example: "invalid email or password."
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 500
+ *                 errorType:
+ *                   type: string
+ *                   example: ServerError
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error."
+ *       400:
+ *         description: Cast error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 400
+ *                 errorType:
+ *                   type: string
+ *                   example: CastError
+ *                 message:
+ *                   type: string
+ *                   example: "Database error."
+ */
+
+
 /**
  * @swagger
  * /api/auths/token:
@@ -385,5 +671,3 @@ export default authrouter;
  *                   type: string
  *                   example: "Internal server error."
  */
-
-

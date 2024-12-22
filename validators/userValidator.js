@@ -3,16 +3,16 @@ import {AppError} from '../utils/errorHandler.js'
 
 //use validation scema
 const commuterValidationSchema = Joi.object({
-    name: Joi.string().min(3).max(50).required().messages({
+    commuterName: Joi.string().min(3).max(50).required().messages({
         'string.empty': 'Name is required',
         'string.min': 'Name must be at least 3 characters',
         'string.max': 'Name cannot exceed 50 characters',
     }),
-    email: Joi.string().email().required().messages({
+    commuterEmail: Joi.string().email().required().messages({
         'string.email': 'Invalid email format',
         'string.empty': 'Email is required',
     }),
-    password: Joi.string()
+    commuterPassword: Joi.string()
         .pattern(new RegExp(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{6,}$/))
         .required()
         .messages({
