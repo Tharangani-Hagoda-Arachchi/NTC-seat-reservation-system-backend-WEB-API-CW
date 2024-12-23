@@ -25,7 +25,7 @@ export const ensureAuthentication = async(req,res,next) => {
             req.admin = { adminId: decodeAccesstoken.adminId };
         } else if (decodeAccesstoken.operatorId) {
             req.operator = { operatorId: decodeAccesstoken.operatorId };
-        } else if (decodeAccesstoken.commuteId) {
+        } else if (decodeAccesstoken.commuterId) {
             req.commuter = { commuterId: decodeAccesstoken.commuterId };
         } else {
             return res.status(403).json({ message: 'Invalid token payload' });

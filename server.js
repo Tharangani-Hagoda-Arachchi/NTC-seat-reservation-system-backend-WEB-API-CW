@@ -5,6 +5,7 @@ import authrouter from "./routes/authRoutes.js"
 import adminrouter from "./routes/adminRoutes.js";
 import operatorrouter from "./routes/operatorRoute.js";
 import busRouterouter from "./routes/busRouteroutes.js";
+import busrouter from "./routes/busRoutes.js";
 
 import express from 'express'
 import cors from 'cors'
@@ -27,6 +28,7 @@ app.use('/api/auths',authrouter)
 app.use('/api',adminrouter)
 app.use('/api',operatorrouter)
 app.use('/api',busRouterouter)
+app.use('/api',busrouter)
 
 DBConnect();
 
