@@ -1,10 +1,11 @@
 import express from 'express';
-import { addNewBus } from '../controllers/busController.js';
+import { addNewBus,deleteBus } from '../controllers/busController.js';
 import validateAddBus from '../validators/busValidator.js';
 import { authorize, ensureAuthentication } from '../utils/authentication.js';
 const busrouter  = express.Router();
 
 busrouter.post('/buses',ensureAuthentication,authorize(['admin','operator']),validateAddBus,addNewBus);
+busrouter.delete('/buses/:permitNo',ensureAuthentication,authorize(['admin','operator']),deleteBus);
 
 export default busrouter;
 
@@ -170,3 +171,95 @@ export default busrouter;
  *                   type: string
  *                   example: "Internal server error."
  */
+
+
+
+
+//delete bus
+
+/**
+ * @swagger
+ * /api/buses/{permitNo}:
+ *   delete:
+ *     summary: Delete an bus by their permit NO
+ *     description: Deletes a bus from the database by their unique permit no.
+ *     tags:
+ *       - Buses
+ *     parameters:
+ *       - in: path
+ *         name: permitNo
+ *         required: true
+ *         description: The permit No of the bus to delete.
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Bus successfully deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Bus with no 123 deleted successfully."
+ *       404:
+ *         description: bus not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "bus with permit No 123 not found."
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error."
+ *       401:
+ *         description: Authentication error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthenticationError
+ *                 message:
+ *                   type: string
+ *                   example: "access token invalid."
+ *       403:
+ *         description: Authorization error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 403
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthorizationError
+ *                 message:
+ *                   type: string
+ *                   example: "Access Denied."
+ */
+

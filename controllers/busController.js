@@ -36,7 +36,7 @@ export const addNewBus = async (req, res,next) => {
             conductorRegisteredCode,
             routeNo: route._id
         };
-        console.log('req.admin:', req.admin);
+
         if (req.admin?.adminId) {
             // If Admin ID exists, verify and store it
             const isAdmin = await Admin.findById(req.admin.adminId);
@@ -74,3 +74,38 @@ export const addNewBus = async (req, res,next) => {
 };
 
 
+//delete bus by permit no
+export const deleteBus = async (req, res, next) => {
+    try {
+        const { permitNo } = req.params;
+
+        //Find the bus by permitNo
+        const bus = await Bus.findOne({ permitNo });
+
+        if (!bus) {
+            return res.status(404).json({ message: `No Bus found with the Permit No '${permitNo}'.` });
+        }
+
+        // Authorization Check
+        if (req.operator?.operatorId) {
+            if (bus.systemEnteredOperatorId?.toString() !== req.operator.operatorId) {
+                return res.status(403).json({ message: 'Unauthorized: You can only delete buses you created.' });
+            }
+        } else if (!req.admin?.adminId) {
+            // If neither an Admin nor a valid Operator, deny access
+            return res.status(403).json({ message: 'Unauthorized: Only Admins or the assigned Operator can delete this bus.' });
+        }
+
+        // Perform the deletion
+        await Bus.deleteOne({ permitNo });
+
+        res.status(200).json({
+            message: `Bus with Permit No '${permitNo}' deleted successfully.`,
+        });
+
+        next();
+
+    } catch (error) {
+        next(error); // Pass error to the global error handler
+    }
+};

@@ -48,8 +48,6 @@ export function authorize(roles =[]){
         try{
             let entityType = null;
 
-            console.log('req.admin:', req.admin);
-
             if (req.admin && roles.includes('admin')) {
                 entityType = await Admin.findById(req.admin.adminId);
             } else if (req.operator && roles.includes('operator')) {
