@@ -4,6 +4,7 @@ import { swaggerUi,swaggerDocs } from "./swagger.js";
 import authrouter from "./routes/authRoutes.js"
 import adminrouter from "./routes/adminRoutes.js";
 import operatorrouter from "./routes/operatorRoute.js";
+import busRouterouter from "./routes/busRouteroutes.js";
 
 import express from 'express'
 import cors from 'cors'
@@ -25,6 +26,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.use('/api/auths',authrouter)
 app.use('/api',adminrouter)
 app.use('/api',operatorrouter)
+app.use('/api',busRouterouter)
 
 DBConnect();
 

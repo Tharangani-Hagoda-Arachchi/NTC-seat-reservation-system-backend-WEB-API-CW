@@ -35,6 +35,7 @@ export const commuterSignup = async (req, res, next) => {
         await newCommuter.save();
 
         res.status(201).json({ message: 'Signup successful' });
+        next()
 
 
     } catch(error){
@@ -83,6 +84,7 @@ export const adminLogin = async (req, res, next) => {
             accessToken,
             refreshToken
         });
+        next()
         
 
     } catch(error){
@@ -130,6 +132,8 @@ export const operatorLogin = async (req, res, next) => {
             accessToken,
             refreshToken
         });
+
+        next()
         
 
     } catch(error){
@@ -173,6 +177,8 @@ export const commuterLogin = async (req, res, next) => {
             accessToken,
             refreshToken
         });
+
+        next()
         
         
 
@@ -218,6 +224,8 @@ export const refreshTokenGeneration = async (req, res, next) => {
             success: true,
             accessToken
         });
+
+        next()
 
     } catch(error){
         if (error instanceof jwt.TokenExpiredError || error instanceof jwt.JsonWebTokenError){

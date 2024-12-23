@@ -33,6 +33,8 @@ export const addAdmin = async (req, res, next) => {
 
         res.status(201).json({ message: 'New Admin Added successful' });
 
+        next()
+    
 
     } catch(error){
         next(error); // Pass error to the global error handler
@@ -63,6 +65,8 @@ export const getAdminById = async (req, res, next) => {
             adminName: admin.adminName,
             adminEmail: admin.adminEmail
         });
+
+        next()
     } catch (error) {
         next(error); // Pass error to the global error handler
     }
@@ -109,6 +113,7 @@ export const deleteAdmin = async (req, res, next) => {
         }
 
         res.status(200).json({message: `Admin with ID '${adminId}' deleted successfully.`,});
+        next()
 
     } catch (error) {
         next(error); // Pass error to the global error handler
@@ -159,6 +164,8 @@ export const updateAdminEmailAndPassword = async (req, res, next) => {
                 adminEmail: updatedAdmin.adminEmail // Updated email
             }
         });
+
+        next()
     } catch (error) {
         next(error); // Pass error to the global error handler
     }
