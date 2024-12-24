@@ -1,11 +1,12 @@
 import express from 'express';
-import { addNewBus,deleteBus } from '../controllers/busController.js';
+import { addNewBus,deleteBus,updateBusPermitNo } from '../controllers/busController.js';
 import validateAddBus from '../validators/busValidator.js';
 import { authorize, ensureAuthentication } from '../utils/authentication.js';
 const busrouter  = express.Router();
 
 busrouter.post('/buses',ensureAuthentication,authorize(['admin','operator']),validateAddBus,addNewBus);
 busrouter.delete('/buses/:permitNo',ensureAuthentication,authorize(['admin','operator']),deleteBus);
+busrouter.put('/buses/:permitNo',ensureAuthentication,authorize(['admin','operator']),updateBusPermitNo);
 
 export default busrouter;
 
@@ -262,4 +263,132 @@ export default busrouter;
  *                   type: string
  *                   example: "Access Denied."
  */
+
+
+
+//update all details by permit No
+/**
+ * @swagger
+ * /api/buses/{permitNo}:
+ *   put:
+ *     summary: Update bus details
+ *     description: Updates all details of busses by concidering permit No.
+ *     tags:
+ *       - Buses
+ *     parameters:
+ *       - in: path
+ *         name: permitNo
+ *         required: true
+ *         description: The unique permit No of the bus to update.
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       name: bus
+ *       description: The new bus details .
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               busNo:
+ *                 type: string
+ *                 example: "NTB 987"
+ *               busName:
+ *                 type: string
+ *                 example: "Asiri Travellers"
+ *               busType:
+ *                 type: string
+ *                 example: "Luxury"
+ *               driverRegisteredCode:
+ *                 type: string
+ *                 example: "6243566d8"
+ *               conductorRegisteredCode:
+ *                 type: string
+ *                 example: "6243566c8"
+ *               routeNo:
+ *                 type: string
+ *                 example: "372/6"
+ *     responses:
+ *       200:
+ *         description: Bus successfully updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Bus with permit No 12345 updated successfully."
+ *
+ *       400:
+ *         description: Bad request - email or password is missing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Email and password are required."
+ *       404:
+ *         description: Admin not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "bus with ID 12345 not found."
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error."
+ *       401:
+ *         description: Authentication error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthenticationError
+ *                 message:
+ *                   type: string
+ *                   example: "invalid token."
+ *       403:
+ *         description: Authorization error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 403
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthorizationError
+ *                 message:
+ *                   type: string
+ *                   example: "Access Denied."
+ */
+
 
