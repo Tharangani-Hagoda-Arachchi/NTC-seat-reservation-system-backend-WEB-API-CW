@@ -136,12 +136,63 @@ export const updateBusPermitNo = async (req, res, next) => {
         // Perform the update
         const updatedBus = await Bus.findOneAndUpdate(
             { permitNo },
-            {busNo,busName,busType,driverRegisteredCode,conductorRegisteredCode,routeNo: route._idid,systemEnteredId},       // Update data
+            {busNo,busName,busType,driverRegisteredCode,conductorRegisteredCode,routeNo: route._id,systemEnteredId},       // Update data
             { new: true} // Return the updated document and validate updates
         );
 
         res.status(200).json({
             message: `Bus with Permit No '${permitNo}' updated successfully.`,
+            
+        });
+
+        next();
+    } catch (error) {
+        next(error); // Pass error to the global error handler
+    }
+};
+
+
+
+// update driver code and conductor code by using bus no 
+export const updateBusByBusNo = async (req, res, next) => {
+    try {
+        const { busNo } = req.params; 
+        const {  driverRegisteredCode, conductorRegisteredCode } = req.body;// Get updates from request body
+
+        if ( !busNo || !driverRegisteredCode || !conductorRegisteredCode ){
+            throw new AppError('all fields are required', 422, 'ValidationError');
+        }
+
+        // Find the bus by busNo
+        const bus = await Bus.findOne({ busNo });
+        if (!bus) {
+            return res.status(404).json({ message: `No Bus found with Permit No '${busNo}'.` });
+        }
+
+        // Authorization Check
+        if (req.operator?.operatorId) {
+            // If Operator is trying to update
+            if (bus.systemEnteredOperatorId?.toString() !== req.operator.operatorId) {
+                return res.status(403).json({ message: 'Unauthorized: You can only update buses you created.' });
+            }
+        } else if (!req.admin?.adminId) {
+            // If neither Admin nor a valid Operator, deny access
+            return res.status(403).json({ message: 'Unauthorized: Only Admins or the assigned Operator can update this bus.' });
+        }
+
+
+        const systemEnteredId = await validateAndAssignAdminOrOperator(req)
+
+
+        // Perform the update
+        const updatedBus = await Bus.findOneAndUpdate(
+            { busNo },
+            {driverRegisteredCode,conductorRegisteredCode,systemEnteredId},       // Update data
+            { new: true} // Return the updated document and validate updates
+        );
+
+        res.status(200).json({
+            message: ` driver code and conductor code of Bus with  No '${busNo}' updated successfully.`,
             
         });
 

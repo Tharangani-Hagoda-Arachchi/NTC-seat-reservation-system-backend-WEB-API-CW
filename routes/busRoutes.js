@@ -1,5 +1,5 @@
 import express from 'express';
-import { addNewBus,deleteBus,updateBusPermitNo } from '../controllers/busController.js';
+import { addNewBus,deleteBus,updateBusPermitNo,updateBusByBusNo } from '../controllers/busController.js';
 import validateAddBus from '../validators/busValidator.js';
 import { authorize, ensureAuthentication } from '../utils/authentication.js';
 const busrouter  = express.Router();
@@ -7,6 +7,7 @@ const busrouter  = express.Router();
 busrouter.post('/buses',ensureAuthentication,authorize(['admin','operator']),validateAddBus,addNewBus);
 busrouter.delete('/buses/:permitNo',ensureAuthentication,authorize(['admin','operator']),deleteBus);
 busrouter.put('/buses/:permitNo',ensureAuthentication,authorize(['admin','operator']),updateBusPermitNo);
+busrouter.patch('/buses/:busNo',ensureAuthentication,authorize(['admin','operator']),updateBusByBusNo);
 
 export default busrouter;
 
@@ -390,5 +391,122 @@ export default busrouter;
  *                   type: string
  *                   example: "Access Denied."
  */
+
+
+
+
+//update drive and conductor details by bus No
+/**
+ * @swagger
+ * /api/buses/{busNo}:
+ *   patch:
+ *     summary: Update driver and condutors register codes 
+ *     description: Updates driver and conductor code of busses by concidering bus No.
+ *     tags:
+ *       - Buses
+ *     parameters:
+ *       - in: path
+ *         name: busNo
+ *         required: true
+ *         description: The unique Bus No of the bus to update.
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       name: bus
+ *       description: The new bus details .
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               driverRegisteredCode:
+ *                 type: string
+ *                 example: "6243566d9"
+ *               conductorRegisteredCode:
+ *                 type: string
+ *                 example: "6243566c9"
+ *     responses:
+ *       200:
+ *         description: Bus successfully updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Bus with bus No 12345 updated successfully."
+ *
+ *       400:
+ *         description: Bad request - driver code or conductor code is missing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "driver code and conductor code required."
+ *       404:
+ *         description: bus not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "bus with No 12345 not found."
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error."
+ *       401:
+ *         description: Authentication error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthenticationError
+ *                 message:
+ *                   type: string
+ *                   example: "invalid token."
+ *       403:
+ *         description: Authorization error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 403
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthorizationError
+ *                 message:
+ *                   type: string
+ *                   example: "Access Denied."
+ */
+
 
 
