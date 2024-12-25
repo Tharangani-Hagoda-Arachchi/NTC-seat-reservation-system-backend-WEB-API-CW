@@ -20,6 +20,10 @@ const busSchema = new mongoose.Schema({
         enum: [ 'Luxury','Semi Luxury','Normal'], 
         required: true 
     },
+    totalNoOfSeats: { 
+        type: Number, 
+        required: true 
+    },
     driverRegisteredCode: {
         type: String, 
         required: true 
@@ -33,6 +37,13 @@ const busSchema = new mongoose.Schema({
         ref: 'Route', 
         required: true 
     }, 
+
+    operatorRegisteredId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Operator', 
+        required: true 
+    }, 
+
     systemEnteredAdminId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Admin',

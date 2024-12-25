@@ -2,13 +2,14 @@ import Bus from '../models/busModel.js';
 import Route from '../models/busRouteModel.js';
 import { validateAndAssignAdminOrOperator } from '../validators/busAddUpdatePersonAsigner.js';
 import { AppError } from '../utils/errorHandler.js';
+import Operator from '../models/operatorModel.js';
 
 
 // Add New Bus
 export const addNewBus = async (req, res,next) => {
     try {
        
-        const { permitNo, busNo, busName, busType, driverRegisteredCode, conductorRegisteredCode, routeNo } = req.body;
+        const { permitNo, busNo, busName, busType, totalNoOfSeats, driverRegisteredCode, conductorRegisteredCode, routeNo, operatorRegisteredId } = req.body;
 
         const existingBus = await Bus.findOne({ permitNo } );
         if (existingBus) {
@@ -26,15 +27,23 @@ export const addNewBus = async (req, res,next) => {
             return res.status(400).json({ error: 'Invalid route number. Route not found.' });
         }
 
+        // Check if operator exists in operator table
+        const operator = await Operator.findOne({ operatorRegisteredId });
+        if (!operator) {
+            return res.status(400).json({ error: 'Invalid operator ID.' });
+        }
+
         // Prepare bus data with routeId
         const busData = {
             permitNo,
             busNo,
             busName,
             busType,
+            totalNoOfSeats,
             driverRegisteredCode,
             conductorRegisteredCode,
-            routeNo: route._id
+            routeNo: route._id,
+            operatorRegisteredId: operator._id
         };
 
        const systemEnteredId = await validateAndAssignAdminOrOperator(req)
@@ -101,10 +110,14 @@ export const deleteBus = async (req, res, next) => {
 export const updateBusPermitNo = async (req, res, next) => {
     try {
         const { permitNo } = req.params; 
-        const { busNo, busName, busType, driverRegisteredCode, conductorRegisteredCode, routeNo } = req.body;// Get updates from request body
+        const { busNo, busName, busType, totalNoOfSeats, driverRegisteredCode, conductorRegisteredCode, routeNo, operatorRegisteredId } = req.body;// Get updates from request body
 
-        if (!permitNo || !busNo || !busName || !busType || !driverRegisteredCode || !conductorRegisteredCode || !routeNo){
+        if (!permitNo || !busNo || !busName || !busType || !totalNoOfSeats|| !driverRegisteredCode || !conductorRegisteredCode || !routeNo || !operatorRegisteredId){
             throw new AppError('all fields are required', 422, 'ValidationError');
+        }
+
+        if (isNaN(totalNoOfSeats) || !Number.isInteger(totalNoOfSeats) || totalNoOfSeats > 60) {
+            throw new AppError('Total number of seats must be an integer and cannot exceed 60', 422, 'ValidationError');
         }
 
         // Find the bus by permitNo
@@ -130,13 +143,20 @@ export const updateBusPermitNo = async (req, res, next) => {
             return res.status(400).json({ error: 'Invalid route number. Route not found.' });
         }
 
+
+        // Check if operator exists in operator table
+        const operator = await Operator.findOne({ operatorRegisteredId });
+        if (!operator) {
+            return res.status(400).json({ error: 'Invalid operator ID.' });
+        }
+
         const systemEnteredId = await validateAndAssignAdminOrOperator(req)
 
 
         // Perform the update
         const updatedBus = await Bus.findOneAndUpdate(
             { permitNo },
-            {busNo,busName,busType,driverRegisteredCode,conductorRegisteredCode,routeNo: route._id,systemEnteredId},       // Update data
+            {busNo,busName,busType,totalNoOfSeats,driverRegisteredCode,conductorRegisteredCode,routeNo: route._id,operatorRegisteredId,systemEnteredId},       // Update data
             { new: true} // Return the updated document and validate updates
         );
 

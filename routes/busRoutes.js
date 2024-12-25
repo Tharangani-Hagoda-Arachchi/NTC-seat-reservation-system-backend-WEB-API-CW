@@ -33,9 +33,11 @@ export default busrouter;
  *               - busNo
  *               - busName
  *               - busType
+ *               - totalNoOfSeats
  *               - driverRegisteredCode
  *               - conductorRegisteredCode
  *               - routeNo
+ *               - operatorRegisteredId
  *             properties:
  *               permitNo:
  *                 type: string
@@ -50,6 +52,9 @@ export default busrouter;
  *               busType:
  *                 type: string
  *                 example: Luxury
+ *               totalNoOfSeats:
+ *                 type: number
+ *                 example: 54
  *               driverRegisteredCode:
  *                 type: string
  *                 example: Dr54673
@@ -59,6 +64,9 @@ export default busrouter;
  *               routeNo:
  *                 type: string
  *                 example: 256/8
+ *               operatorRegisteredId:
+ *                 type: string
+ *                 example: NTC-OPE-124
  *     responses:
  *       201:
  *         description: Bus added successfully.
@@ -301,6 +309,9 @@ export default busrouter;
  *               busType:
  *                 type: string
  *                 example: "Luxury"
+ *               totalNoOfSeats:
+ *                 type: number
+ *                 example: 54
  *               driverRegisteredCode:
  *                 type: string
  *                 example: "6243566d8"
@@ -310,6 +321,9 @@ export default busrouter;
  *               routeNo:
  *                 type: string
  *                 example: "372/6"
+ *               operatorRegisteredId:
+ *                 type: string
+ *                 example: NTC-OPE-124
  *     responses:
  *       200:
  *         description: Bus successfully updated
