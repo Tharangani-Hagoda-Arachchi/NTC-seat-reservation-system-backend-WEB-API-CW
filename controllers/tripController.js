@@ -105,3 +105,104 @@ export const addNewWeekDayTrip = async (req, res, next) => {
         next(error);
     }
 };
+
+
+
+
+export const addNewWeekendTrip = async (req, res, next) => {
+    try {
+        // Extract data from req body
+        const { startLocation, endLocation, startTime, endTime, totalTravellingTime, busNo, routeNo, stoppedStations } = req.body;
+
+        // Validate route no and bus no references
+        const { route, bus } = await validateTripReferences(routeNo, busNo);
+
+        // Initialize trip data
+        const tripData = await initializeTripData(busNo);
+
+        // Assign tripType as weekend
+        const weekendTripType = 'weekend';
+
+        // Function to capitalize first letter in start and end station
+        const capitalizeFirstLetter = (str) => {
+            if (!str || typeof str !== 'string') return '';
+            return str.trim().charAt(0).toUpperCase() + str.trim().slice(1).toLowerCase();
+        };
+        const normalizedStartLocation = capitalizeFirstLetter(startLocation);
+        const normalizedEndLocation = capitalizeFirstLetter(endLocation);
+
+        // Validate and assign admin/operator
+        const systemEnteredId = await validateAndAssignAdminOrOperator(req);
+
+        // Generate unique trip ID
+        const generateTripID = () => {
+            const timestamp = Date.now().toString().slice(-6); // Last 6 digits of the timestamp
+            const randomPart = crypto.randomBytes(3).toString('hex'); // 3 bytes = 6 hex characters
+            return `weekendtrip-${timestamp}-${randomPart}`;
+        };
+
+        // Get today's date and find the next weekend
+        let currentDate = new Date();
+        const tripsToSave = [];
+
+        // Loop through the next 14 days (2 weeks)
+        for (let i = 0; i < 14; i++) {
+            // Check if the current day is a weekend
+            if (isWeekend(currentDate)) {
+                // Convert date into 'YYYY-MM-DD'
+                const dateString = currentDate.toISOString().split('T')[0];
+
+                // Check if a trip is already scheduled
+                const existingTrip = await checkIfTripAlreadyScheduled(
+                    normalizedStartLocation,
+                    normalizedEndLocation,
+                    startTime,
+                    endTime,
+                    dateString,
+                    route._id
+                );
+
+                if (existingTrip) {
+                    return res.status(400).json({
+                        message: `Trip is already scheduled for ${normalizedStartLocation} to ${normalizedEndLocation} on ${dateString} with the same times and route.`
+                    });
+                }
+
+                const tripSaveData = {
+                    tripId: generateTripID(),
+                    startLocation: normalizedStartLocation,
+                    endLocation: normalizedEndLocation,
+                    date: dateString,
+                    startTime,
+                    endTime,
+                    totalTravellingTime,
+                    totalNoOfSeats: tripData.totalNoOfSeats,
+                    bookedSeats: tripData.bookedSeats,
+                    notProvidedSeats: tripData.notProvidedSeats,
+                    busNo: tripData.busNo,
+                    routeNo: route._id,
+                    tripType: weekendTripType,
+                    bookingAvalability: tripData.bookingAvalability,
+                    tripAvalability: tripData.tripAvailability,
+                    stoppedStations,
+                    ...systemEnteredId,
+                };
+
+                tripsToSave.push(tripSaveData);
+            }
+
+            // Move to the next day
+            currentDate = addDays(currentDate, 1);
+        }
+
+        // Save all trips to the database
+        await Trip.insertMany(tripsToSave);
+
+        res.status(200).json({
+            message: 'Trips scheduled successfully for all weekends in the next 2 weeks!',
+        });
+        next();
+    } catch (error) {
+        next(error);
+    }
+};
