@@ -6,6 +6,7 @@ import adminrouter from "./routes/adminRoutes.js";
 import operatorrouter from "./routes/operatorRoute.js";
 import busRouterouter from "./routes/busRouteroutes.js";
 import busrouter from "./routes/busRoutes.js";
+import triprouter from "./routes/tripRoutes.js";
 import { fetchSwaggerJson, filterRoutes } from "./splitSwagger.js";
 
 import express from 'express'
@@ -89,6 +90,7 @@ app.use('/api',adminrouter)
 app.use('/api',operatorrouter)
 app.use('/api',busRouterouter)
 app.use('/api',busrouter)
+app.use('/api',triprouter)
 
 DBConnect();
 
