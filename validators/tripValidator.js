@@ -21,6 +21,9 @@ const tripValidationSchema = Joi.object({
         'string.base': 'End location must be a string.',
         'any.required': 'End location is required.'
     }),
+    date: Joi.date().messages({
+        'date.base': 'Date must be a valid date',
+    }),
     startTime: Joi.string().pattern(/^([01]\d|2[0-3]):([0-5]\d)$/).required().messages({
         'string.pattern.base': 'Time must be in the format HH:mm (24-hour).',
         'any.required': ' Start Time is required.'

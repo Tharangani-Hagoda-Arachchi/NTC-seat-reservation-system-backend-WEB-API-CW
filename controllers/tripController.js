@@ -1,4 +1,3 @@
-
 import Trip from '../models/tripModel.js';
 import { addDays, isWeekend } from 'date-fns'; // Ensure date-fns is installed
 import validateTripReferences from '../validators/tripReferenceValidator.js';
@@ -8,7 +7,7 @@ import { checkIfTripAlreadyScheduled } from '../middlewares/tripMiddleware.js';
 import crypto from 'crypto'
 import { ro } from 'date-fns/locale';
 
-
+//create new weekdays trips
 export const addNewWeekDayTrip = async (req, res, next) => {
     try {
 
@@ -107,17 +106,16 @@ export const addNewWeekDayTrip = async (req, res, next) => {
 };
 
 
-
-
+// crete new weekends trips
 export const addNewWeekendTrip = async (req, res, next) => {
     try {
         // Extract data from req body
         const { startLocation, endLocation, startTime, endTime, totalTravellingTime, busNo, routeNo, stoppedStations } = req.body;
 
-        // Validate route no and bus no references
+         //calling function in tripReferencevalidator.js for validate route no and bus no references
         const { route, bus } = await validateTripReferences(routeNo, busNo);
 
-        // Initialize trip data
+         //calling function in tripMiddleware.js for inititalized trip data
         const tripData = await initializeTripData(busNo);
 
         // Assign tripType as weekend
@@ -131,7 +129,7 @@ export const addNewWeekendTrip = async (req, res, next) => {
         const normalizedStartLocation = capitalizeFirstLetter(startLocation);
         const normalizedEndLocation = capitalizeFirstLetter(endLocation);
 
-        // Validate and assign admin/operator
+       //calling function in busAddUpdatePersonAsigner.js 
         const systemEnteredId = await validateAndAssignAdminOrOperator(req);
 
         // Generate unique trip ID
@@ -200,6 +198,92 @@ export const addNewWeekendTrip = async (req, res, next) => {
 
         res.status(200).json({
             message: 'Trips scheduled successfully for all weekends in the next 2 weeks!',
+        });
+        next();
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+
+
+// crete new special trips
+export const addNewSpecialTrip = async (req, res, next) => {
+    try {
+        // Extract data from req body
+        const { startLocation, endLocation, date, startTime, endTime, totalTravellingTime, busNo, routeNo, stoppedStations } = req.body;
+
+         //calling function in tripReferencevalidator.js for validate route no and bus no references
+        const { route, bus } = await validateTripReferences(routeNo, busNo);
+
+         //calling function in tripMiddleware.js for inititalized trip data
+        const tripData = await initializeTripData(busNo);
+
+        // Assign tripType as special
+        const specialTripType = 'weekend';
+
+        // Function to capitalize first letter in start and end station
+        const capitalizeFirstLetter = (str) => {
+            if (!str || typeof str !== 'string') return '';
+            return str.trim().charAt(0).toUpperCase() + str.trim().slice(1).toLowerCase();
+        };
+        const normalizedStartLocation = capitalizeFirstLetter(startLocation);
+        const normalizedEndLocation = capitalizeFirstLetter(endLocation);
+
+       //calling function in busAddUpdatePersonAsigner.js 
+        const systemEnteredId = await validateAndAssignAdminOrOperator(req);
+
+        // Generate unique trip ID
+        const generateTripID = () => {
+            const timestamp = Date.now().toString().slice(-6); // Last 6 digits of the timestamp
+            const randomPart = crypto.randomBytes(3).toString('hex'); // 3 bytes = 6 hex characters
+            return `specialtrip-${timestamp}-${randomPart}`;
+        };
+
+        const existingTrip = await checkIfTripAlreadyScheduled(
+            normalizedStartLocation,
+            normalizedEndLocation,
+            startTime,
+            endTime,
+            date,
+            route._id
+        );
+
+        if (existingTrip) {
+            return res.status(400).json({
+                message: `Trip is already scheduled for ${normalizedStartLocation} to ${normalizedEndLocation} on ${date} with the same times and route.`
+            });
+        }
+
+        const tripsToSave = [];
+
+        const tripSaveData = {
+            tripId: generateTripID(),
+            startLocation: normalizedStartLocation,
+            endLocation: normalizedEndLocation,
+            date,
+            startTime,
+            endTime,
+            totalTravellingTime,
+            totalNoOfSeats: tripData.totalNoOfSeats,
+            bookedSeats: tripData.bookedSeats,
+            notProvidedSeats: tripData.notProvidedSeats,
+            busNo: tripData.busNo,
+            routeNo: route._id,
+            tripType: specialTripType,
+            bookingAvalability: tripData.bookingAvalability,
+            tripAvalability: tripData.tripAvailability,
+            stoppedStations,
+            ...systemEnteredId,
+        };
+
+        tripsToSave.push(tripSaveData);
+
+        await Trip.insertMany(tripsToSave);
+
+        res.status(200).json({
+            message: 'Special Trips scheduled successfully',
         });
         next();
     } catch (error) {
