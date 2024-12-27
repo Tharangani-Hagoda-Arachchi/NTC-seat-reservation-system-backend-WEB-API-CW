@@ -1,5 +1,5 @@
 import express from 'express';
-import { addNewWeekDayTrip,addNewWeekendTrip,addNewSpecialTrip,getTripsDetails } from '../controllers/tripController.js';
+import { addNewWeekDayTrip,addNewWeekendTrip,addNewSpecialTrip,getTripsDetails,getseatsDetailsById } from '../controllers/tripController.js';
 import validateTrip from '../validators/tripValidator.js'
 import { authorize, ensureAuthentication } from '../utils/authentication.js';
 const triprouter  = express.Router();
@@ -8,6 +8,7 @@ triprouter.post('/trips/weekdays',ensureAuthentication,authorize(['admin']),vali
 triprouter.post('/trips/weekends',ensureAuthentication,authorize(['admin']),validateTrip,addNewWeekendTrip);
 triprouter.post('/trips/specials',ensureAuthentication,authorize(['admin']),validateTrip,addNewSpecialTrip);
 triprouter.get('/trips/:startLocation/:endLocation/:date',getTripsDetails);
+triprouter.get('/trips/:tripId/seats',getseatsDetailsById);
 
 
 
@@ -610,6 +611,59 @@ export default triprouter;
  *                 errorType:
  *                   type: string
  *                   example: "ServerError"
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error."
+ */
+
+
+
+
+// get seats details tripID
+/**
+ * @swagger
+ * /api/trips/{tripId}/seats:
+ *   get:
+ *     summary: get seat details bu trip id
+ *     description: get seat details bu trip id.
+ *     tags:
+ *       - Trips
+ *     parameters:
+ *       - in: path
+ *         name: tripId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: trip ID of trip which want to check seats avalability.
+ * 
+ *     responses:
+ *       200:
+ *         description: seat details retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "seats retrieved successfully."
+ *
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 500
+ *                 errorType:
+ *                   type: string
+ *                   example: ServerError
  *                 message:
  *                   type: string
  *                   example: "Internal server error."

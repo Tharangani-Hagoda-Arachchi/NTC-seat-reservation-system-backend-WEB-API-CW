@@ -1,4 +1,5 @@
 import Trip from '../models/tripModel.js';
+import { AppError } from '../utils/errorHandler.js';
 import { addDays, isWeekend } from 'date-fns'; // Ensure date-fns is installed
 import validateTripReferences from '../validators/tripReferenceValidator.js';
 import {initializeTripData}  from '../middlewares/tripMiddleware.js'
@@ -318,6 +319,8 @@ export const getTripsDetails = async (req, res, next) => {
         if (!trips || trips.length === 0) {
             return res.status(404).json({ message: 'No Trips found for the specified start location, end location and date.' });
         } else{
+
+            trips.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
             
             res.status(200).json({
                 message: `trips retrieved successfully.`,
@@ -344,6 +347,47 @@ export const getTripsDetails = async (req, res, next) => {
                         time: station.time
                     }))
                 }))
+            });
+        }
+        next()
+
+    } catch(error){
+        next(error); // Pass error to the global error handler
+    }
+}
+
+
+//get seat details bu trpId
+export const getseatsDetailsById = async (req, res, next) => {
+    try{
+        const {tripId} = req.params
+
+        if (!tripId ) {
+            throw new AppError('Trip ID/Code required', 422, 'ValidationError');
+        }
+
+
+        const trips = await Trip.findOne({tripId}) .populate('busNo', 'busNo busName busType').populate('routeNo', ('routeNo')); 
+
+        if (!trips || trips.length === 0) {
+            return res.status(404).json({ message: 'No Trips found for this specific Id.' });
+        } else{
+            
+            res.status(200).json({
+                message: `seat details of ${tripId} retrieved successfully.`,
+                
+                date : trips.date.toISOString().split('T')[0],
+                tripCode: trips.tripId,
+                route:`${trips.routeNo.routeNo} -${trips.startLocation} --> ${trips.endLocation}`,
+                busName: trips.busNo.busName,
+                busType: trips.busNo.busType,
+                totalNoOfSeats: trips.totalNoOfSeats,
+                bookedSeats: trips.bookedSeats,
+                notProvidedSeats: trips.notProvidedSeats,
+                AvailableSeats: trips.availableSeats, 
+                tripAvailability: trips.tripAvalability,
+                bookingAvalability: trips.bookingAvalability,
+                        
             });
         }
         next()
