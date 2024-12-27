@@ -1,5 +1,5 @@
 import express from 'express';
-import { addNewWeekDayTrip,addNewWeekendTrip,addNewSpecialTrip } from '../controllers/tripController.js';
+import { addNewWeekDayTrip,addNewWeekendTrip,addNewSpecialTrip,getTripsDetails } from '../controllers/tripController.js';
 import validateTrip from '../validators/tripValidator.js'
 import { authorize, ensureAuthentication } from '../utils/authentication.js';
 const triprouter  = express.Router();
@@ -7,6 +7,8 @@ const triprouter  = express.Router();
 triprouter.post('/trips/weekdays',ensureAuthentication,authorize(['admin']),validateTrip,addNewWeekDayTrip);
 triprouter.post('/trips/weekends',ensureAuthentication,authorize(['admin']),validateTrip,addNewWeekendTrip);
 triprouter.post('/trips/specials',ensureAuthentication,authorize(['admin']),validateTrip,addNewSpecialTrip);
+triprouter.get('/trips/:startLocation/:endLocation/:date',getTripsDetails);
+
 
 
 export default triprouter;
@@ -543,6 +545,71 @@ export default triprouter;
  *                 errorType:
  *                   type: string
  *                   example: ServerError
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error."
+ */
+
+
+
+// get trip info by start location, end location and date
+/**
+ * @swagger
+ * /api/trips/{startLocation}/{endLocation}/{date}:
+ *   get:
+ *     summary: Search trips
+ *     description: Search trips by start location, end location and date.
+ *     tags:
+ *       - Trips
+ *     parameters:
+ *       - in: path
+ *         name: startLocation
+ *         required: true
+ *         description: Starting location of the trip
+ *         schema:
+ *           type: string
+ *           example: "Glle"
+ *       - in: path
+ *         name: endLocation
+ *         required: true
+ *         description: Ending location of the trip
+ *         schema:
+ *           type: string
+ *           example: "Colombo"
+ *       - in: path
+ *         name: date
+ *         required: true
+ *         description: Date of the trip 
+ *         schema:
+ *           type: string
+ *           example: "2024-06-27"
+ *     responses:
+ *       200:
+ *         description: Trip retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Routes retrieved successfully."
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 500
+ *                 errorType:
+ *                   type: string
+ *                   example: "ServerError"
  *                 message:
  *                   type: string
  *                   example: "Internal server error."

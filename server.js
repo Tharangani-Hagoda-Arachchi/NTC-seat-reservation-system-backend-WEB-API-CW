@@ -8,6 +8,8 @@ import busRouterouter from "./routes/busRouteroutes.js";
 import busrouter from "./routes/busRoutes.js";
 import triprouter from "./routes/tripRoutes.js";
 import { fetchSwaggerJson, filterRoutes } from "./splitSwagger.js";
+import './cron/tripShedulerCron.js';
+import './models/tripModel.js'
 
 import express from 'express'
 import cors from 'cors'

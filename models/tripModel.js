@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import applyTripHooks from "../hooks/tripHooks.js";
 
 const stationSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -96,23 +97,7 @@ systemEnteredOperatorId: {
     timestamps: true // Adds createdAt and updatedAt timestamps
 });
 
-
-//hook to calculate availability seats
-tripSchema.pre('insertMany', function (next, docs) {
-    docs.forEach(doc => {
-        
-        const totalSeats = doc.totalNoOfSeats;
-        const notProvidedSeats = doc.notProvidedSeats; // Might be empty
-        const bookedSeats = doc.bookedSeats;           // Might be empty
-
-        const allSeats = Array.from({ length: totalSeats }, (_, i) => i + 1);
-        doc.availableSeats = allSeats.filter(seat => 
-            !notProvidedSeats.includes(seat) && !bookedSeats.includes(seat)
-        );
-    });
-
-    next();
-});
+applyTripHooks(tripSchema);
 
 const Trip = mongoose.model('Trip', tripSchema)
 

@@ -221,7 +221,7 @@ export const addNewSpecialTrip = async (req, res, next) => {
         const tripData = await initializeTripData(busNo);
 
         // Assign tripType as special
-        const specialTripType = 'weekend';
+        const specialTripType = 'special';
 
         // Function to capitalize first letter in start and end station
         const capitalizeFirstLetter = (str) => {
@@ -290,3 +290,68 @@ export const addNewSpecialTrip = async (req, res, next) => {
         next(error);
     }
 };
+
+
+
+//get trips by start location end location and date
+export const getTripsDetails = async (req, res, next) => {
+    try{
+        const {startLocation,endLocation,date} = req.params
+
+        if (!startLocation || !endLocation || !date) {
+            throw new AppError('Start Location, End Location and Date required', 422, 'ValidationError');
+        }
+
+        const formattedDate = new Date(date);
+
+        // Ensure the date is in the correct format
+        if (isNaN(formattedDate)) {
+            return res.status(400).json({ message: "Invalid date format. Use YYYY-MM-DD." });
+        }
+
+        const normalizedStartLocation = startLocation.trim().toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+        const normalizedEndLocation = endLocation.trim().toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+
+
+        const trips = await Trip.find({startLocation: normalizedStartLocation, endLocation:normalizedEndLocation, date: formattedDate }) .populate('busNo', 'busNo busName').populate('routeNo', ('routeNo totalDistanceIn_km')); 
+
+        if (!trips || trips.length === 0) {
+            return res.status(404).json({ message: 'No Trips found for the specified start location, end location and date.' });
+        } else{
+            
+            res.status(200).json({
+                message: `trips retrieved successfully.`,
+                trips: trips.map(trips => ({
+                    date : trips.date.toISOString().split('T')[0],
+                    tripCode: trips.tripId,
+                    routeName: `${trips.startLocation} --> ${trips.endLocation}`,
+                    routeNo: trips.routeNo.routeNo,
+                    busNo: trips.busNo.busNo ,
+                    busName: trips.busNo.busName,
+                    startLocation: trips.startLocation,
+                    endLocation: trips.endLocation,
+                    startTime: trips.startTime,
+                    endTime: trips.endTime,
+                    totalDistanceIn_km: trips.routeNo.totalDistanceIn_km,
+                    totalTravellingTime: trips.totalTravellingTime,
+                    totalNoOfSeats: trips.totalNoOfSeats,
+                    tripAvailability: trips.tripAvalability,
+                    bookingAvalability: trips.bookingAvalability,
+                    stoppedStations: trips.stoppedStations.map(station => ({
+                        name: station.name,
+                        time: station.time
+                    }))
+                }))
+            });
+        }
+        next()
+
+    } catch(error){
+        next(error); // Pass error to the global error handler
+    }
+}
+
+
+
+
+
