@@ -313,7 +313,7 @@ export const getTripsDetails = async (req, res, next) => {
         const normalizedEndLocation = endLocation.trim().toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
 
 
-        const trips = await Trip.find({startLocation: normalizedStartLocation, endLocation:normalizedEndLocation, date: formattedDate }) .populate('busNo', 'busNo busName').populate('routeNo', ('routeNo totalDistanceIn_km')); 
+        const trips = await Trip.find({startLocation: normalizedStartLocation, endLocation:normalizedEndLocation, date: formattedDate }) .populate('busNo', 'busNo busName busType').populate('routeNo', ('routeNo totalDistanceIn_km')); 
 
         if (!trips || trips.length === 0) {
             return res.status(404).json({ message: 'No Trips found for the specified start location, end location and date.' });
@@ -328,6 +328,7 @@ export const getTripsDetails = async (req, res, next) => {
                     routeNo: trips.routeNo.routeNo,
                     busNo: trips.busNo.busNo ,
                     busName: trips.busNo.busName,
+                    busType: trips.busNo.busType,
                     startLocation: trips.startLocation,
                     endLocation: trips.endLocation,
                     startTime: trips.startTime,
@@ -337,6 +338,7 @@ export const getTripsDetails = async (req, res, next) => {
                     totalNoOfSeats: trips.totalNoOfSeats,
                     tripAvailability: trips.tripAvalability,
                     bookingAvalability: trips.bookingAvalability,
+                    totalAvailableSeats: trips.availableSeats?.length || 0, 
                     stoppedStations: trips.stoppedStations.map(station => ({
                         name: station.name,
                         time: station.time
