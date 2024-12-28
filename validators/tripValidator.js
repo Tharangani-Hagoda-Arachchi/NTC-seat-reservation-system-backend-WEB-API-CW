@@ -44,6 +44,10 @@ const tripValidationSchema = Joi.object({
         'string.base': 'Route number must be a string.',
         'any.required': 'Route number is required.'
     }),
+    feePerSeatInLKR: Joi.number().required().messages({
+        'number.base': 'fee must be numbers.',
+        'any.required': 'fee is required.'
+    }),
     stoppedStations: Joi.array().items(stationSchema).optional().messages({
         'array.base': 'Stopped stations must be an array.',
         'array.items': 'Each stopped station must be a valid station object.',

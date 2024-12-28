@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import applyTripHooks from "../hooks/tripHooks.js";
 
+
 const stationSchema = new mongoose.Schema({
     name: { type: String, required: true },
     time: { type: String, required: true, match: /^([01]\d|2[0-3]):([0-5]\d)$/ }
@@ -63,6 +64,10 @@ busNo: {
 routeNo: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Route', 
+    required: true 
+},
+feePerSeatInLKR: { 
+    type: Number,  
     required: true 
 },
 tripType: { 

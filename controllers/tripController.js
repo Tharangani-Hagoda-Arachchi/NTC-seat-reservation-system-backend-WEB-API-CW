@@ -13,7 +13,7 @@ export const addNewWeekDayTrip = async (req, res, next) => {
     try {
 
         //extract data from req body
-        const { startLocation, endLocation, startTime, endTime, totalTravellingTime, busNo, routeNo, stoppedStations } = req.body;
+        const { startLocation, endLocation, startTime, endTime, totalTravellingTime, busNo, routeNo,feePerSeatInLKR, stoppedStations } = req.body;
         
         //calling function in tripReferencevalidator.js for validate route no and bus no references
         const { route, bus } = await validateTripReferences(routeNo, busNo);
@@ -79,6 +79,7 @@ export const addNewWeekDayTrip = async (req, res, next) => {
                     notProvidedSeats: tripData.notProvidedSeats,
                     busNo: tripData.busNo,
                     routeNo:route._id,
+                    feePerSeatInLKR,
                     tripType: weekTripType,
                     bookingAvalability: tripData.bookingAvalability,
                     tripAvalability: tripData.tripAvailability,
@@ -111,7 +112,7 @@ export const addNewWeekDayTrip = async (req, res, next) => {
 export const addNewWeekendTrip = async (req, res, next) => {
     try {
         // Extract data from req body
-        const { startLocation, endLocation, startTime, endTime, totalTravellingTime, busNo, routeNo, stoppedStations } = req.body;
+        const { startLocation, endLocation, startTime, endTime, totalTravellingTime, busNo, routeNo,feePerSeatInLKR, stoppedStations } = req.body;
 
          //calling function in tripReferencevalidator.js for validate route no and bus no references
         const { route, bus } = await validateTripReferences(routeNo, busNo);
@@ -180,6 +181,7 @@ export const addNewWeekendTrip = async (req, res, next) => {
                     notProvidedSeats: tripData.notProvidedSeats,
                     busNo: tripData.busNo,
                     routeNo: route._id,
+                    feePerSeatInLKR,
                     tripType: weekendTripType,
                     bookingAvalability: tripData.bookingAvalability,
                     tripAvalability: tripData.tripAvailability,
@@ -213,7 +215,7 @@ export const addNewWeekendTrip = async (req, res, next) => {
 export const addNewSpecialTrip = async (req, res, next) => {
     try {
         // Extract data from req body
-        const { startLocation, endLocation, date, startTime, endTime, totalTravellingTime, busNo, routeNo, stoppedStations } = req.body;
+        const { startLocation, endLocation, date, startTime, endTime, totalTravellingTime, busNo, routeNo, feePerSeatInLKR, stoppedStations } = req.body;
 
          //calling function in tripReferencevalidator.js for validate route no and bus no references
         const { route, bus } = await validateTripReferences(routeNo, busNo);
@@ -272,6 +274,7 @@ export const addNewSpecialTrip = async (req, res, next) => {
             notProvidedSeats: tripData.notProvidedSeats,
             busNo: tripData.busNo,
             routeNo: route._id,
+            feePerSeatInLKR,
             tripType: specialTripType,
             bookingAvalability: tripData.bookingAvalability,
             tripAvalability: tripData.tripAvailability,
@@ -346,7 +349,7 @@ export const updateNotProvidedSeats = async (req, res, next) => {
             message: `Not provided seats for Bus No '${trip.busNo.busNo}' updated successfully.`,
             
         });
-        
+
         next();
     } catch (error) {
         next(error); // Pass error to global error handler
@@ -384,30 +387,42 @@ export const getTripsDetails = async (req, res, next) => {
             
             res.status(200).json({
                 message: `trips retrieved successfully.`,
-                trips: trips.map(trips => ({
-                    date : trips.date.toISOString().split('T')[0],
-                    tripCode: trips.tripId,
-                    routeName: `${trips.startLocation} --> ${trips.endLocation}`,
-                    routeNo: trips.routeNo.routeNo,
-                    busNo: trips.busNo.busNo ,
-                    busName: trips.busNo.busName,
-                    busType: trips.busNo.busType,
-                    startLocation: trips.startLocation,
-                    endLocation: trips.endLocation,
-                    startTime: trips.startTime,
-                    endTime: trips.endTime,
-                    totalDistanceIn_km: trips.routeNo.totalDistanceIn_km,
-                    totalTravellingTime: trips.totalTravellingTime,
-                    totalNoOfSeats: trips.totalNoOfSeats,
-                    tripAvailability: trips.tripAvalability,
-                    bookingAvalability: trips.bookingAvalability,
-                    totalAvailableSeats: trips.availableSeats?.length || 0, 
-                    stoppedStations: trips.stoppedStations.map(station => ({
-                        name: station.name,
-                        time: station.time
-                    }))
-                }))
+                trips: trips.map(trip => {
+                    const isLuxury = trip.busNo.busType === 'luxury' || trip.busNo.busType === 'semi luxury';
+                    
+                    return {
+                        date: trip.date.toISOString().split('T')[0],
+                        tripCode: trip.tripId,
+                        routeName: `${trip.startLocation} --> ${trip.endLocation}`,
+                        routeNo: trip.routeNo.routeNo,
+                        busNo: trip.busNo.busNo,
+                        busName: trip.busNo.busName,
+                        busType: trip.busNo.busType,
+                        startLocation: trip.startLocation,
+                        endLocation: trip.endLocation,
+                        startTime: trip.startTime,
+                        endTime: trip.endTime,
+                        totalDistanceIn_km: trip.routeNo.totalDistanceIn_km,
+                        totalTravellingTime: trip.totalTravellingTime,
+                        
+                        // Conditional Fee Field (Placed in the middle here)
+                        ...(isLuxury 
+                            ? { feePerSeatInLKR: trip.feePerSeatInLKR }
+                            : { convinenceFeePerSeatInLKR: trip.feePerSeatInLKR }
+                        ),
+                        
+                        totalNoOfSeats: trip.totalNoOfSeats,
+                        tripAvailability: trip.tripAvalability,
+                        bookingAvalability: trip.bookingAvalability,
+                        totalAvailableSeats: trip.availableSeats?.length || 0,
+                        stoppedStations: trip.stoppedStations.map(station => ({
+                            name: station.name,
+                            time: station.time
+                        }))
+                    };
+                })
             });
+            
         }
         next()
 
@@ -445,6 +460,7 @@ export const getseatsDetailsById = async (req, res, next) => {
                 bookedSeats: trips.bookedSeats,
                 notProvidedSeats: trips.notProvidedSeats,
                 AvailableSeats: trips.availableSeats, 
+                feePerSeatInLKR: trips.feePerSeatInLKR,
                 tripAvailability: trips.tripAvalability,
                 bookingAvalability: trips.bookingAvalability,
                         
