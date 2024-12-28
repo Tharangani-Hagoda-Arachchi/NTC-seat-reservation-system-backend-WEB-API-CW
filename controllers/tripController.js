@@ -294,6 +294,66 @@ export const addNewSpecialTrip = async (req, res, next) => {
 
 
 
+// update not provided seat bu trip id
+export const updateNotProvidedSeats = async (req, res, next) => {
+    try {
+        const { tripId } = req.params; 
+        const { notProvidedSeats } = req.body;
+
+        // Validate tripId
+        if (!tripId || typeof tripId !== 'string') {
+            throw new AppError('Valid tripId is required', 422, 'ValidationError');
+        }
+
+        // Validate notProvidedSeats
+        if (!Array.isArray(notProvidedSeats)) {
+            throw new AppError('notProvidedSeats must be an array', 422, 'ValidationError');
+        }
+
+        // Fetch the trip with bus and operator details
+        const trip = await Trip.findOne({ tripId })
+            .populate({
+                path: 'busNo',  
+                select: 'busNo operatorRegisteredId',
+                populate: {
+                    path: 'operatorRegisteredId',  
+                    select: 'operatorRegisteredId'
+                }
+            });
+    
+        if (!trip) {
+            return res.status(404).json({ message: 'Trip not found' });
+        }
+       
+        if (String(trip.busNo.operatorRegisteredId._id) !== String(req.operator.operatorId)) {
+            return res.status(403).json({ message: 'Forbidden: Operator ID mismatch' });
+        }
+
+        // Validate and assign systemEnteredId
+        const systemEnteredId = await validateAndAssignAdminOrOperator(req);
+
+        // Perform the update
+        const updatedTrip = await Trip.findOneAndUpdate(
+            { tripId },
+            { 
+                notProvidedSeats, 
+                systemEnteredId 
+            }, 
+            { new: true }
+        );
+
+        res.status(200).json({
+            message: `Not provided seats for Bus No '${trip.busNo.busNo}' updated successfully.`,
+            
+        });
+        
+        next();
+    } catch (error) {
+        next(error); // Pass error to global error handler
+    }
+};
+
+
 //get trips by start location end location and date
 export const getTripsDetails = async (req, res, next) => {
     try{

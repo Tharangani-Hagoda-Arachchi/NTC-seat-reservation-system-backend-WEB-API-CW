@@ -4,11 +4,11 @@ import validateAddAdmin from '../validators/adminValidator.js';
 import { authorize, ensureAuthentication } from '../utils/authentication.js';
 const adminrouter  = express.Router();
 
-adminrouter.post('/admins',validateAddAdmin,addAdmin);
-adminrouter.get('/admins/:adminId',getAdminById);
+adminrouter.post('/admins',ensureAuthentication,authorize(['admin']),validateAddAdmin,addAdmin);
+adminrouter.get('/admins/:adminId',ensureAuthentication,authorize(['admin']),getAdminById);
 adminrouter.get('/admins',ensureAuthentication,authorize(['admin']),getAdmin);
-adminrouter.delete('/admins/:adminId',deleteAdmin);
-adminrouter.patch('/admins/:adminId',updateAdminEmailAndPassword);
+adminrouter.delete('/admins/:adminId',ensureAuthentication,authorize(['admin']),deleteAdmin);
+adminrouter.patch('/admins/:adminId',ensureAuthentication,authorize(['admin']),updateAdminEmailAndPassword);
 
 
 export default adminrouter;

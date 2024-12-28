@@ -1,5 +1,5 @@
 import express from 'express';
-import { addNewWeekDayTrip,addNewWeekendTrip,addNewSpecialTrip,getTripsDetails,getseatsDetailsById } from '../controllers/tripController.js';
+import { addNewWeekDayTrip,addNewWeekendTrip,addNewSpecialTrip,getTripsDetails,getseatsDetailsById,updateNotProvidedSeats } from '../controllers/tripController.js';
 import validateTrip from '../validators/tripValidator.js'
 import { authorize, ensureAuthentication } from '../utils/authentication.js';
 const triprouter  = express.Router();
@@ -9,6 +9,7 @@ triprouter.post('/trips/weekends',ensureAuthentication,authorize(['admin']),vali
 triprouter.post('/trips/specials',ensureAuthentication,authorize(['admin']),validateTrip,addNewSpecialTrip);
 triprouter.get('/trips/:startLocation/:endLocation/:date',getTripsDetails);
 triprouter.get('/trips/:tripId/seats',getseatsDetailsById);
+triprouter.patch('/trips/notProvidedSeats/:tripId',ensureAuthentication,authorize(['operator']),updateNotProvidedSeats);
 
 
 
@@ -550,6 +551,149 @@ export default triprouter;
  *                   type: string
  *                   example: "Internal server error."
  */
+
+
+// Update not provided seats by trip id
+/**
+ * @swagger
+ * /api/trips/notProvidedSeats/{tripId}:
+ *   patch:
+ *     summary: Update not provided seat numbers
+ *     description: Updates not provided seat numbers by trip Id.
+ *     tags:
+ *       - Trips
+ *     parameters:
+ *       - in: path
+ *         name: tripId
+ *         required: true
+ *         description: The unique Trip Id of the trip to update.
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       description: The not provided seat numbers.
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               notProvidedSeats:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *             example:
+ *               notProvidedSeats: [1, 2, 3, 4]
+ * 
+ *     responses:
+ *       200:
+ *         description: Not provided seats successfully updated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Seats updated successfully."
+ *
+ *       400:
+ *         description: Validation error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 400
+ *                 errorType:
+ *                   type: string
+ *                   example: ValidationError
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed."
+ *                 details:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example:
+ *                     - "Start Location required"
+ *                     
+ *       409:
+ *         description: Conflict error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 409
+ *                 errorType:
+ *                   type: string
+ *                   example: ConflictError
+ *                 message:
+ *                   type: string
+ *                   example: "Bus already exists."
+ *                 
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error."
+ * 
+ *       401:
+ *         description: Authentication error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthenticationError
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid token."
+ * 
+ *       403:
+ *         description: Authorization error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 403
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthorizationError
+ *                 message:
+ *                   type: string
+ *                   example: "Access Denied."
+ */
+
 
 
 
