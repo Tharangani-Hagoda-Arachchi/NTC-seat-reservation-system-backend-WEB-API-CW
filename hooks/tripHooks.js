@@ -1,4 +1,4 @@
-function calculateSeatAvailability(totalNoOfSeats, notProvidedSeats=[], bookedSeats=[]) {
+export function calculateSeatAvailability(totalNoOfSeats, notProvidedSeats=[], bookedSeats=[]) {
     // Generate seat identifiers (e.g., 1 to totalSeats as strings: 1, 2, ...)
     const allSeats = Array.from({ length: totalNoOfSeats }, (_, i) => (i + 1));
 
@@ -54,3 +54,6 @@ export default function applyTripHooks(tripSchema) {
         next();
     });
 }
+
+
+

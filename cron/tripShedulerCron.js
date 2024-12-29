@@ -2,7 +2,9 @@ import cron from 'node-cron'
 import Trip from '../models/tripModel.js';
 import moment from 'moment-timezone';
 
-// Schedule the cron job with Sri Lanka time zone
+
+export const bookingAvalabilityCheckingJob = () => {
+    // Schedule the cron job with Sri Lanka time zone
 cron.schedule('* * * * *', async () => {
 
     const nowSLT = moment().tz("Asia/Colombo").format('YYYY-MM-DD HH:mm:ss');
@@ -38,3 +40,7 @@ cron.schedule('* * * * *', async () => {
     scheduled: true,
     timezone: "Asia/Colombo"
 });
+
+   
+};
+

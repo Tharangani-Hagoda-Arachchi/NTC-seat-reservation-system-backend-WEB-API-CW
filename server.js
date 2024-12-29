@@ -7,9 +7,10 @@ import operatorrouter from "./routes/operatorRoute.js";
 import busRouterouter from "./routes/busRouteroutes.js";
 import busrouter from "./routes/busRoutes.js";
 import triprouter from "./routes/tripRoutes.js";
+import bookingrouter from "./routes/bookingRoutes.js";
 import { fetchSwaggerJson, filterRoutes } from "./splitSwagger.js";
-import './cron/tripShedulerCron.js';
-import './models/tripModel.js'
+import { bookingAvalabilityCheckingJob } from "./cron/tripShedulerCron.js"; 
+import { startBookingCleanupJob } from "./cron/bookingDeletioncron.js";
 
 import express from 'express'
 import cors from 'cors'
@@ -25,6 +26,10 @@ app.use(cors());
 app.use(express.json());
 dotenv.config();
 app.use(cookieParser());
+
+//start cron jobs
+bookingAvalabilityCheckingJob();
+startBookingCleanupJob();
 
 
 //swager setup
@@ -93,6 +98,8 @@ app.use('/api',operatorrouter)
 app.use('/api',busRouterouter)
 app.use('/api',busrouter)
 app.use('/api',triprouter)
+app.use('/api',bookingrouter)
+
 
 DBConnect();
 
