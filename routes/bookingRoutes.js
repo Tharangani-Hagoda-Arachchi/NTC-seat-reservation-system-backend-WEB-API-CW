@@ -1,11 +1,12 @@
 import express from 'express';
-import { bookingSeats,bookingPayment } from '../controllers/bookinController.js';
+import { bookingSeats,bookingPayment,bookingCancel } from '../controllers/bookinController.js';
 import validateBookings from '../validators/bookingValidator.js';
 import { authorize, ensureAuthentication } from '../utils/authentication.js';
 const bookingrouter  = express.Router();
 
 bookingrouter.post('/bookings/:tripId',ensureAuthentication,validateBookings,bookingSeats);
 bookingrouter.post('/bookings/payments/:bookingReferenceNo',ensureAuthentication,bookingPayment);
+bookingrouter.patch('/bookings/:bookingReferenceNo',ensureAuthentication,bookingCancel);
 
 export default bookingrouter;
 
@@ -158,6 +159,85 @@ export default bookingrouter;
  *                 message:
  *                   type: string
  *                   example: "payment successfully and booking confirmed."
+ *       400:
+ *         description: Bad request - required field missing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: " required."
+ *       404:
+ *         description: booking not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "booking with No 12345 not found."
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error."
+ *       401:
+ *         description: Authentication error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthenticationError
+ *                 message:
+ *                   type: string
+ *                   example: "invalid token."
+ */
+
+
+//booking cancel
+/**
+ * @swagger
+ * /api/bookings/{bookingReferenceNo}:
+ *   patch:
+ *     summary: booking cancel
+ *     description: booking cancel
+ *     tags:
+ *       - Bookings
+ *     parameters:
+ *       - in: path
+ *         name: bookingReferenceNo
+ *         required: true
+ *         description: The booking reference no which want to do payments.
+ *         schema:
+ * 
+ *     responses:
+ *       200:
+ *         description: booking cancel successfully 
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "booking cancel successfully."
  *       400:
  *         description: Bad request - required field missing
  *         content:

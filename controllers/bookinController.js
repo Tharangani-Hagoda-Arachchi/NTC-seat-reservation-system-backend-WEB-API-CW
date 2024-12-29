@@ -49,7 +49,7 @@ export const bookingSeats = async (req, res, next) => {
             });
         }
 
-        const totalFee = trip.feePerSeatInLKR * bookingSeats.length;
+        const totalFee = trip.feePerSeatInLKR * bookingSeats.length();
 
         // create nwe booking
         const booking = new Booking({
@@ -69,8 +69,7 @@ export const bookingSeats = async (req, res, next) => {
           });
 
         await booking.save();
-        console.log(moment.tz("Asia/Colombo").toDate() )
-
+        
           // Update Trip: Remove seats from availableSeats, add to bookedSeats
           trip.bookedSeats.push(...bookingSeatNo);
           trip.availableSeats = trip.availableSeats.filter(seat => !bookingSeatNo.includes(seat));
@@ -151,4 +150,60 @@ export const bookingPayment = async (req, res, next) => {
         next(error); // Pass error to the global error handler
     }
 };
+
+export const bookingCancel = async (req, res, next) => {
+    try{
+        const { bookingReferenceNo } = req.params;
+
+        const booking = await Booking.findOne({ bookingReferenceNo });
+        if (!booking) {
+            return res.status(409).json({ message: 'booking not found ' });
+        }
+
+        // Update booking status to 'cancelled'
+        booking.bookingStatus = 'cancel';
+        await booking.save();
+
+        // Get the booked seat numbers
+        const bookedSeatsNo = booking.bookingSeatNo; 
+
+        // Find the trip associated with the booking
+        const trip = await Trip.findById(booking.tripId);
+
+        if (!trip) {
+            return res.status(404).json({ message: 'Trip not found' });
+        }
+        
+        // Add the booked seats back to availableSeats
+        trip.availableSeats = [...new Set([...trip.availableSeats, ...bookedSeatsNo])];
+
+        // Remove the cancelled seats from bookedSeats 
+        trip.bookedSeats = trip.bookedSeats.filter(
+            (seat) => !bookedSeatsNo.includes(seat)
+        );
+        
+        /// Calculate seat availability using the utility function
+        const { availableSeats, bookingAvalability } = calculateSeatAvailability(
+            trip.totalNoOfSeats,
+            trip.notProvidedSeats,
+            trip.bookedSeats
+        );
+
+        // Update trip availability status
+        trip.availableSeats = availableSeats;
+        trip.bookingAvalability= bookingAvalability ;
+
+        await trip.save();
+        
+            
+        res.status(200).json({ message: 'Booking cancelled and seats updated successfully' });
+
+        next()
+    
+
+    } catch(error){
+        next(error); // Pass error to the global error handler
+    }
+};
+
 
