@@ -200,7 +200,7 @@ export const refreshTokenGeneration = async (req, res, next) => {
 
         const decodeRefreshToken =jwt.verify(requestRefreshToken,refreshTokenSecret);// decode refresh token
 
-        if (!decodeRefreshToken || !decodeRefreshToken.userId) {
+        if (!decodeRefreshToken || !decodeRefreshToken.commuterId) {
             throw new AppError('Invalid Refresh Token payload', 400, 'ValidationError');
         }
         
@@ -210,13 +210,13 @@ export const refreshTokenGeneration = async (req, res, next) => {
             throw new AppError('Refresh Token not found.', 401, 'AuthenticationError');       
         }
        
-        await RefreshToken.deleteMany({userId:userRefreshToken.userId});// delete previosly stored refresh tokens
+        await RefreshToken.deleteMany({userId:userRefreshToken.commuterId});// delete previosly stored refresh tokens
         
         // generate new acess token
-        const accessToken = jwt.sign({userId: decodeRefreshToken.userId}, jwtSecret, { subject: 'AccessAPI', expiresIn: '30s'})
+        const accessToken = jwt.sign({userId: decodeRefreshToken.commuterId}, jwtSecret, { subject: 'AccessAPI', expiresIn: '15m'})
 
         // create refresh token
-        const refreshToken = await generateRefreshToken(decodeRefreshToken);
+        const refreshToken = await generateRefreshToken(commuter,'commuter');;
 
         res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true }); // HTTP-only cookie for refresh token
 

@@ -8,6 +8,11 @@ import { checkIfTripAlreadyScheduled } from '../middlewares/tripMiddleware.js';
 import crypto from 'crypto'
 import { ro } from 'date-fns/locale';
 import Booking from '../models/bookingModel.js';
+import dotenv from 'dotenv';
+import sgMail from '@sendgrid/mail';
+dotenv.config();
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 //create new weekdays trips
 export const addNewWeekDayTrip = async (req, res, next) => {
@@ -399,12 +404,34 @@ export const cancelTrip= async (req, res, next) => {
         bookings.forEach(async (booking) => {
             booking.bookingStatus = 'cancel';
             await booking.save();
+               // Prepare the email message
+               const msg = {
+                to: booking.commuterEmail, 
+                from: 'tharangijayamuthu@gmail.com', // Use a verified SendGrid sender email
+                subject: 'Trip Cancelation',
+                text: `Hello, Your booking (ID: ${booking.bookingReferenceNo}) trip has been canceled.`,
+                html: `
+                    <h1>Booking Cancelation</h1>
+                    <p>Hello,</p>
+                    <p>Your booking (ID: <strong>${booking.bookingReferenceNo}</strong>) trip has been canceled.</p>
+                    <p>A refund is available shortly!</p>
+                    <p>Thank you for choosing us!</p>
+                `,
+            };
+
+            // Send email using SendGrid
+            try {
+                await sgMail.send(msg);
+            } catch (error) {
+                console.error('Error sending email to customer:', booking.commuterEmail, error);
+            }
         });
 
 
         return res.status(200).json({
             message: 'Trip canceled successfully',
             affectedBookings: bookings.length,
+            
         });
 
         next();

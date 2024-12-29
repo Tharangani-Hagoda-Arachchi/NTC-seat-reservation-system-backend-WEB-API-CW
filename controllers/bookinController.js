@@ -3,6 +3,10 @@ import Trip from '../models/tripModel.js';
 import crypto from 'crypto'
 import moment from 'moment-timezone';
 import { calculateSeatAvailability } from '../hooks/tripHooks.js';
+import dotenv from 'dotenv';
+import sgMail from '@sendgrid/mail';
+dotenv.config();
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 
 //generate unique booking reference No
@@ -49,7 +53,7 @@ export const bookingSeats = async (req, res, next) => {
             });
         }
 
-        const totalFee = trip.feePerSeatInLKR * bookingSeats.length();
+        const totalFee = trip.feePerSeatInLKR * bookingSeats.length;
 
         // create nwe booking
         const booking = new Booking({
@@ -113,7 +117,7 @@ export const bookingPayment = async (req, res, next) => {
             return res.status(409).json({ message: 'booking not found or automaticaly canceled excede payment time limit' });
         }
 
-        if (booking.bookingStatus = 'confirm') {
+        if (booking.bookingStatus == 'confirm') {
             return res.status(409).json({ message: 'already payment is done' });
         }
 
@@ -133,6 +137,27 @@ export const bookingPayment = async (req, res, next) => {
             }, 
             { new: true }
         );
+
+        const trip = await Trip.findOne({_id: booking.tripId}) .populate('busNo', 'busNo busName busType').populate('routeNo', ('routeNo')); 
+        
+        const msg = {
+            to: booking.commuterEmail, 
+            from: 'tharangijayamuthu@gmail.com', 
+            subject: 'Booking Confirmation',
+            text: `Hello  Your booking (ID: ${booking.bookingReferenceNo}) is confirmed.`,
+            html: `
+                <h1>Booking Confirmation</h1>
+                <p>Hello <strong></strong>,</p>
+                <p>Your booking (ID: <strong>${booking.bookingReferenceNo}</strong>) is confirmed.</p>
+                <p>Your Route <strong>${trip.routeNo.routeNo} -${trip.startLocation} --> ${trip.endLocation}}</strong>) .</p>
+                <p><strong>Bus No:</strong> ${trip.busNo.busNo} Bus Name ${trip.busNo.busName} </p>
+                <p><strong>Seat No:</strong> ${booking.bookingSeatNo}</p>
+                <p><strong>Total Paid:</strong> LKR${paymentAmount}</p>
+                <p>Thank you for choosing us!</p>
+            `,
+        };
+
+        await sgMail.send(msg);
             
         res.status(201).json({
             message: 'Payment successful and booking confirmed',
@@ -140,11 +165,9 @@ export const bookingPayment = async (req, res, next) => {
             paymentRefNo: booking.paymentRefNo,
             bookingSeatNo:booking.bookingSeatNo,
             totalAmount: paymentAmount
-
         });
 
         next()
-    
 
     } catch(error){
         next(error); // Pass error to the global error handler
@@ -195,6 +218,21 @@ export const bookingCancel = async (req, res, next) => {
 
         await trip.save();
         
+        const msg = {
+            to: booking.commuterEmail, 
+            from: 'tharangijayamuthu@gmail.com', 
+            subject: 'Booking Canceling',
+            text: `Hello  Your booking (ID: ${booking.bookingReferenceNo}) is canceled.`,
+            html: `
+                <h1>Booking Cancelation</h1>
+                <p>Hello <strong></strong>,</p>
+                <p>Your booking (ID: <strong>${booking.bookingReferenceNo}</strong>) is canceled.</p>
+                <p>refund is available shortly !</p>
+                <p>Thank you for choosing us!</p>
+            `,
+        };
+
+        await sgMail.send(msg);
             
         res.status(200).json({ message: 'Booking cancelled and seats updated successfully' });
 

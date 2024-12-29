@@ -10,7 +10,7 @@ triprouter.post('/trips/specials',ensureAuthentication,authorize(['admin']),vali
 triprouter.get('/trips/:startLocation/:endLocation/:date',getTripsDetails);
 triprouter.get('/trips/:tripId/seats',getseatsDetailsById);
 triprouter.patch('/trips/notProvidedSeats/:tripId',ensureAuthentication,authorize(['operator']),updateNotProvidedSeats);
-triprouter.put('/trips/:tripId/cancel',ensureAuthentication,authorize(['operator','admin']),cancelTrip);
+triprouter.put('/trips/:tripId/cancel',ensureAuthentication,authorize(['operator']),cancelTrip);
 
 
 
