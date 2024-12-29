@@ -1,5 +1,5 @@
 import express from 'express';
-import { addNewWeekDayTrip,addNewWeekendTrip,addNewSpecialTrip,getTripsDetails,getseatsDetailsById,updateNotProvidedSeats } from '../controllers/tripController.js';
+import { addNewWeekDayTrip,addNewWeekendTrip,addNewSpecialTrip,getTripsDetails,getseatsDetailsById,updateNotProvidedSeats,cancelTrip } from '../controllers/tripController.js';
 import validateTrip from '../validators/tripValidator.js'
 import { authorize, ensureAuthentication } from '../utils/authentication.js';
 const triprouter  = express.Router();
@@ -10,6 +10,7 @@ triprouter.post('/trips/specials',ensureAuthentication,authorize(['admin']),vali
 triprouter.get('/trips/:startLocation/:endLocation/:date',getTripsDetails);
 triprouter.get('/trips/:tripId/seats',getseatsDetailsById);
 triprouter.patch('/trips/notProvidedSeats/:tripId',ensureAuthentication,authorize(['operator']),updateNotProvidedSeats);
+triprouter.put('/trips/:tripId/cancel',ensureAuthentication,authorize(['operator','admin']),cancelTrip);
 
 
 
@@ -641,6 +642,133 @@ export default triprouter;
  *                 message:
  *                   type: string
  *                   example: "Bus already exists."
+ *                 
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error."
+ * 
+ *       401:
+ *         description: Authentication error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthenticationError
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid token."
+ * 
+ *       403:
+ *         description: Authorization error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 403
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthorizationError
+ *                 message:
+ *                   type: string
+ *                   example: "Access Denied."
+ */
+
+// cancel trip
+/**
+ * @swagger
+ * /api/trips/{tripId}/cancel:
+ *   put:
+ *     summary: cancel trip by tripId
+ *     description: Updates trip avalability to cancel using trip Id.
+ *     tags:
+ *       - Trips
+ *     parameters:
+ *       - in: path
+ *         name: tripId
+ *         required: true
+ *         description: The unique Trip Id of the trip to cancel.
+ *         schema:
+ *           type: string
+ * 
+ *     responses:
+ *       200:
+ *         description: trip successfully cancel
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "trip canceled successfully."
+ *
+ *       400:
+ *         description: Validation error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 400
+ *                 errorType:
+ *                   type: string
+ *                   example: ValidationError
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed."
+ *                 details:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example:
+ *                     - "trpId required"
+ *                     
+ *       409:
+ *         description: Conflict error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 409
+ *                 errorType:
+ *                   type: string
+ *                   example: ConflictError
+ *                 message:
+ *                   type: string
+ *                   example: "trip already exists."
  *                 
  *       500:
  *         description: Internal server error.

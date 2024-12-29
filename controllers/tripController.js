@@ -7,6 +7,7 @@ import { validateAndAssignAdminOrOperator } from '../validators/busAddUpdatePers
 import { checkIfTripAlreadyScheduled } from '../middlewares/tripMiddleware.js';
 import crypto from 'crypto'
 import { ro } from 'date-fns/locale';
+import Booking from '../models/bookingModel.js';
 
 //create new weekdays trips
 export const addNewWeekDayTrip = async (req, res, next) => {
@@ -348,6 +349,62 @@ export const updateNotProvidedSeats = async (req, res, next) => {
         res.status(200).json({
             message: `Not provided seats for Bus No '${trip.busNo.busNo}' updated successfully.`,
             
+        });
+
+        next();
+    } catch (error) {
+        next(error); // Pass error to global error handler
+    }
+};
+
+export const cancelTrip= async (req, res, next) => {
+    try {
+        const { tripId } = req.params; 
+
+        // Fetch the trip with bus and operator details
+        const trip = await Trip.findOne({ tripId })
+        .populate({
+            path: 'busNo',  
+            select: 'busNo operatorRegisteredId',
+            populate: {
+                path: 'operatorRegisteredId',  
+                select: 'operatorRegisteredId'
+            }
+        });
+   
+       if (!trip) {
+           return res.status(404).json({ message: 'Trip not found' });
+       }
+      
+        if (String(trip.busNo.operatorRegisteredId._id) !== String(req.operator.operatorId)) {
+            return res.status(403).json({ message: 'Forbidden: Operator ID mismatch' });
+        }
+
+        // Validate and assign systemEnteredId
+        const csystemEnteredId = await validateAndAssignAdminOrOperator(req);
+
+        await Trip.findOneAndUpdate(
+            {tripId},
+            {
+                
+                tripAvalability: 'cancel',
+                bookingAvalability: 'not available',
+                csystemEnteredId 
+            },
+            { new: true } // Return the updated document
+        );
+
+        // Find related bookings and send notifications (optional)
+        const bookings = await Booking.find({ tripId: trip._id });
+        bookings.forEach(async (booking) => {
+            booking.bookingStatus = 'cancel';
+            await booking.save();
+        });
+
+
+        return res.status(200).json({
+            message: 'Trip canceled successfully',
+            affectedBookings: bookings.length,
         });
 
         next();
