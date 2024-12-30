@@ -445,7 +445,7 @@ export const cancelTrip= async (req, res, next) => {
 export const getTripsDetails = async (req, res, next) => {
     try{
         const {startLocation,endLocation,date} = req.params
-        
+
         if (!startLocation || !endLocation || !date) {
             throw new AppError('Start Location, End Location and Date required', 422, 'ValidationError');
         }
@@ -556,6 +556,37 @@ export const getseatsDetailsById = async (req, res, next) => {
         next(error); // Pass error to the global error handler
     }
 }
+
+
+
+export const updateTripTime = async (req, res,next) => {
+    const { tripId } = req.params;
+    const { startTime, endTime } = req.body;
+  
+    if (!startTime || !endTime) {
+      return res.status(400).json({ message: 'Start time and end time are required.' });
+    }
+  
+    try {
+      // Find the trip by tripId and update the start time and end time
+      const trip = await Trip.findOneAndUpdate(
+        { tripId },
+        { startTime, endTime },
+        { new: true }
+      );
+  
+      if (!trip) {
+        return res.status(404).json({ message: 'Trip not found.' });
+      }
+  
+      return res.status(200).json({ message: 'Trip updated successfully.' });
+
+      next()
+    } catch (error) {
+      next(error)
+    }
+  };
+  
 
 
 
