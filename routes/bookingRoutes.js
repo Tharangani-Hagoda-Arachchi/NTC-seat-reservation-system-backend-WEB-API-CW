@@ -1,5 +1,5 @@
 import express from 'express';
-import { bookingSeats,bookingPayment,bookingCancel } from '../controllers/bookinController.js';
+import { bookingSeats,bookingPayment,bookingCancel,getBookingsByCommuterId } from '../controllers/bookinController.js';
 import validateBookings from '../validators/bookingValidator.js';
 import { authorize, ensureAuthentication } from '../utils/authentication.js';
 const bookingrouter  = express.Router();
@@ -7,6 +7,7 @@ const bookingrouter  = express.Router();
 bookingrouter.post('/bookings/:tripId',ensureAuthentication,validateBookings,bookingSeats);
 bookingrouter.post('/bookings/payments/:bookingReferenceNo',ensureAuthentication,bookingPayment);
 bookingrouter.patch('/bookings/:bookingReferenceNo',ensureAuthentication,bookingCancel);
+bookingrouter.get('/bookings/commuter',ensureAuthentication,authorize(['commuter']),getBookingsByCommuterId);
 
 export default bookingrouter;
 
@@ -288,3 +289,89 @@ export default bookingrouter;
  *                   type: string
  *                   example: "invalid token."
  */
+
+
+
+//get bookingaccording to commuterId 
+
+/**
+ * @swagger
+ * /api/bookings/commuter:
+ *   get:
+ *     summary: Get bookings according to commuterId
+ *     description: Retrieve bookings associated with a specific commuterId.
+ *     tags:
+ *       - Commuter Bookings
+ *     responses:
+ *       200:
+ *         description: Bookings retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Bookings retrieved successfully."
+ *
+ *       401:
+ *         description: Authentication error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 401
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthenticationError
+ *                 message:
+ *                   type: string
+ *                   example: "Token invalid."
+ *
+ *       403:
+ *         description: Authorization error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 403
+ *                 errorType:
+ *                   type: string
+ *                   example: AuthorizationError
+ *                 message:
+ *                   type: string
+ *                   example: "Access Denied."
+ *
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 500
+ *                 errorType:
+ *                   type: string
+ *                   example: ServerError
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error."
+ */
+

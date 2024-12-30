@@ -53,7 +53,7 @@ export const bookingSeats = async (req, res, next) => {
             });
         }
 
-        const totalFee = trip.feePerSeatInLKR * bookingSeats.length;
+        const totalFee = trip.feePerSeatInLKR * bookingSeatNo.length;
 
         // create nwe booking
         const booking = new Booking({
@@ -240,6 +240,64 @@ export const bookingCancel = async (req, res, next) => {
     
 
     } catch(error){
+        next(error); // Pass error to the global error handler
+    }
+};
+
+
+//get all booking details by usins commuter Id
+export const getBookingsByCommuterId = async (req, res, next) => {
+    try {
+
+        // Search for all operators
+        const bookings = await Booking.find({ commuterId: req.commuter.commuterId })
+        .populate({
+            path: 'tripId', // Populate tripId field from the Booking model
+            select: 'tripId busNo routeNo startLocation endLocation startTime endTime', // Select relevant fields from the Trip model
+            populate: [
+                {
+                    path: 'busNo', // Nested populate for bus details
+                    select: 'busNo busName' // Select required fields from Bus schema
+                },
+                {
+                    path: 'routeNo', // Nested populate for route details
+                    select: 'routeNo routeDetails' // Select route number and other details
+                }
+            ]
+        });
+
+        if (!bookings) {
+            return res.status(404).json({ message: `No bookings found'.` });
+        }
+
+        bookings.sort((a, b) => {
+            // Compare dates first
+            const dateA = new Date(a.date).toISOString().split('T')[0];
+            const dateB = new Date(b.date).toISOString().split('T')[0];
+            if (dateA < dateB) return -1;
+            if (dateA > dateB) return 1;
+        
+            // If dates are the same, compare startTime
+            return a.tripId.startTime.localeCompare(b.tripId.startTime);
+        });
+        
+
+        res.status(200).json({
+            message: `Booking details retrieved successfully.`,
+            bookings: bookings.map(bookings => ({
+                bookingRefNo:bookings.bookingReferenceNo,
+                Route:`${bookings.tripId.routeNo.routeNo} - ${bookings.tripId.startLocation} --> ${bookings.tripId.endLocation}`,
+                Bus: `${bookings.tripId.busNo.busNo} - ${bookings.tripId.busNo.busName} `,
+                bookingSeatNo:bookings.bookingSeatNo,
+                date:bookings.date.toISOString().split('T')[0],
+                time: `${bookings.tripId.startTime}- ${bookings.tripId.endTime}`,
+                totalFee: bookings.totalFee,
+                bookingStatus: bookings.bookingStatus
+               
+            }))
+        });
+
+    } catch (error) {
         next(error); // Pass error to the global error handler
     }
 };
