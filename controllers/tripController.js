@@ -445,7 +445,7 @@ export const cancelTrip= async (req, res, next) => {
 export const getTripsDetails = async (req, res, next) => {
     try{
         const {startLocation,endLocation,date} = req.params
-
+        
         if (!startLocation || !endLocation || !date) {
             throw new AppError('Start Location, End Location and Date required', 422, 'ValidationError');
         }

@@ -189,50 +189,82 @@ export const commuterLogin = async (req, res, next) => {
 
 
 
-// create refresh token
+
+// Create refresh token
 export const refreshTokenGeneration = async (req, res, next) => {
-    try{
+    try {
         const requestRefreshToken = req.cookies.refreshToken;
-        
+
         if (!requestRefreshToken) {
             throw new AppError('Refresh Token not found', 400, 'ValidationError');
         }
 
-        const decodeRefreshToken =jwt.verify(requestRefreshToken,refreshTokenSecret);// decode refresh token
+        // Decode the refresh token
+        const decodeRefreshToken = jwt.verify(requestRefreshToken, refreshTokenSecret);
 
-        if (!decodeRefreshToken || !decodeRefreshToken.commuterId) {
+        if (!decodeRefreshToken || (!decodeRefreshToken.adminId && !decodeRefreshToken.operatorId && !decodeRefreshToken.commuterId)) {
             throw new AppError('Invalid Refresh Token payload', 400, 'ValidationError');
         }
-        
-        const userRefreshToken = await RefreshToken.findOne({token:requestRefreshToken, userId: decodeRefreshToken.userId,});
-        
-        if (!userRefreshToken){
-            throw new AppError('Refresh Token not found.', 401, 'AuthenticationError');       
+
+        // Determine user type and userId dynamically
+        let userId, userType, entityModel;
+
+        if (decodeRefreshToken.adminId) {
+            userId = decodeRefreshToken.adminId;
+            userType = 'admin';
+            entityModel = Admin; // Assuming Admin is the model for admin users
+        } else if (decodeRefreshToken.operatorId) {
+            userId = decodeRefreshToken.operatorId;
+            userType = 'operator';
+            entityModel = Operator; // Assuming Operator is the model for operator users
+        } else if (decodeRefreshToken.commuterId) {
+            userId = decodeRefreshToken.commuterId;
+            userType = 'commuter';
+            entityModel = Commuter; // Assuming Commuter is the model for commuter users
         }
-       
-        await RefreshToken.deleteMany({userId:userRefreshToken.commuterId});// delete previosly stored refresh tokens
-        
-        // generate new acess token
-        const accessToken = jwt.sign({userId: decodeRefreshToken.commuterId}, jwtSecret, { subject: 'AccessAPI', expiresIn: '15m'})
 
-        // create refresh token
-        const refreshToken = await generateRefreshToken(commuter,'commuter');;
+        // Fetch the entity from the database
+        const entity = await entityModel.findOne({ _id: userId });
+        if (!entity) {
+            throw new AppError(`${userType} not found`, 404, 'NotFoundError');
+        }
 
-        res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true }); // HTTP-only cookie for refresh token
-
-        res.status(200).json({
-            success: true,
-            accessToken
+        // Find the refresh token in the database based on userId and type
+        const userRefreshToken = await RefreshToken.findOne({
+            token: requestRefreshToken,
+            [`${userType}Id`]: userId,
         });
 
-        next()
+        if (!userRefreshToken) {
+            throw new AppError('Refresh Token not found.', 401, 'AuthenticationError');
+        }
 
-    } catch(error){
-        if (error instanceof jwt.TokenExpiredError || error instanceof jwt.JsonWebTokenError){
+        // Delete all previous refresh tokens for this user
+        await RefreshToken.deleteMany({ [`${userType}Id`]: userId });
+
+        // Generate a new access token
+        const accessToken = jwt.sign({ [`${userType}Id`]: entity._id }, jwtSecret, {
+            subject: 'AccessAPI',
+            expiresIn: '15m',
+        });
+
+        // Generate a new refresh token using the `generateRefreshToken` function
+        const refreshToken = await generateRefreshToken(entity, userType);
+
+        // Set the new refresh token in an HTTP-only cookie
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
+
+        // Respond with the new access token
+        res.status(200).json({
+            success: true,
+            accessToken,
+        });
+
+        next();
+    } catch (error) {
+        if (error instanceof jwt.TokenExpiredError || error instanceof jwt.JsonWebTokenError) {
             throw new AppError('Refresh Token invalid or expired', 401, 'AuthenticationError');
         }
-        next(error)
+        next(error);
     }
 };
-
-
