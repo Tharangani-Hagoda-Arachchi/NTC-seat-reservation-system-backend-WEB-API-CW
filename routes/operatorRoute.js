@@ -1,14 +1,14 @@
 import express from 'express';
 import { addOperator,getOperatorById,getOperator,deleteOperator,updateOperatorEmailAndPassword } from '../controllers/operatorController.js';
 import validateOperator from '../validators/operatorValidator.js';
-//import { authorize, ensureAuthentication } from '../utils/authentication.js';
+import { authorize, ensureAuthentication } from '../utils/authentication.js';
 const operatorrouter  = express.Router();
 
-operatorrouter.post('/operators',validateOperator,addOperator);
-operatorrouter.get('/operators/:operatorRegisteredId',getOperatorById);
-operatorrouter.get('/operators',getOperator);
-operatorrouter.delete('/operators/:operatorRegisteredId',deleteOperator);
-operatorrouter.patch('/operators/:operatorRegisteredId',updateOperatorEmailAndPassword);
+operatorrouter.post('/operators',ensureAuthentication,authorize(['admin']),validateOperator,addOperator);
+operatorrouter.get('/operators/:operatorRegisteredId',ensureAuthentication,authorize(['admin']),getOperatorById);
+operatorrouter.get('/operators',ensureAuthentication,authorize(['admin']),getOperator);
+operatorrouter.delete('/operators/:operatorRegisteredId',ensureAuthentication,authorize(['admin']),deleteOperator);
+operatorrouter.patch('/operators/:operatorRegisteredId',ensureAuthentication,authorize(['admin']),updateOperatorEmailAndPassword);
 
 export default operatorrouter;
 
