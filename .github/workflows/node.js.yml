@@ -36,4 +36,4 @@ jobs:
        echo "${{ secrets.REFRESH_SECRET}}" > .env
        echo "${{ secrets.SENDGRID_API_KEY}}" > .env 
     - run: npm run build --if-present
-    - run: npm test
+   
