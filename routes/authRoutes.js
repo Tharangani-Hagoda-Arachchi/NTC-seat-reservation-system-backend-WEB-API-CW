@@ -1,6 +1,7 @@
 import express from 'express';
-import {commuterSignup,adminLogin,operatorLogin,commuterLogin} from '../controllers/authController.js';
+import {commuterSignup,adminLogin,operatorLogin,commuterLogin,logout} from '../controllers/authController.js';
 import validateSignup from '../validators/userValidator.js';
+import { validateRefreshToken } from '../validators/refreshTokenValidator.js';
 import { refreshTokenGeneration } from '../controllers/authController.js';
 const authrouter  = express.Router();
 
@@ -9,6 +10,7 @@ authrouter.post('/admin/login',adminLogin);
 authrouter.post('/operator/login',operatorLogin);
 authrouter.post('/commuter/login',commuterLogin);
 authrouter.post('/token',refreshTokenGeneration);
+authrouter.post('/logout',validateRefreshToken,logout);
 
 export default authrouter;
 
@@ -651,6 +653,73 @@ export default authrouter;
  *                 message:
  *                   type: string
  *                   example: "token invalid or expired."
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 500
+ *                 errorType:
+ *                   type: string
+ *                   example: ServerError
+ *                 message:
+ *                   type: string
+ *                   example: "Internal server error."
+ */
+
+
+/**
+* @swagger
+ * /api/auths/logout:
+ *   post:
+ *     summary: logout
+ *     description: loogout from  accounts
+ *     tags:
+ *       - Authentication
+ *     parameters:
+ *       - in: cookie
+ *         name: refreshToken
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The refresh token stored as an HTTP-only cookie.
+ *     responses:
+ *       200:
+ *         description: logout successfully.
+ *         message: "Logout successfully"
+
+ *       400:
+ *         description: Validation error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 statusCode:
+ *                   type: integer
+ *                   example: 400
+ *                 errorType:
+ *                   type: string
+ *                   example: ValidationError
+ *                 message:
+ *                   type: string
+ *                   example: "Validation failed."
+ *                 details:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example:
+ *                     - "refresh token required."
  *       500:
  *         description: Internal server error.
  *         content:

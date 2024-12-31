@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import Commuter from '../models/commuterModel.js';
 import Admin from '../models/adminModel.js';
 import Operator from '../models/operatorModel.js';
+import BlacklistToken from '../models/blacklisttokenModel.js';
 dotenv.config();
 
 
@@ -266,5 +267,43 @@ export const refreshTokenGeneration = async (req, res, next) => {
             throw new AppError('Refresh Token invalid or expired', 401, 'AuthenticationError');
         }
         next(error);
+    }
+};
+
+
+//logout
+export const logout = async (req, res, next) => {
+    try {
+        const requestRefreshToken = req.cookies.refreshToken;
+
+        if (!requestRefreshToken) {
+            return res.status(400).json({ message: 'Refresh token is required' });
+        }
+
+        // Verify the refresh token
+        jwt.verify(requestRefreshToken, refreshTokenSecret, async (err, decoded) => {
+            if (err) {
+                return res.status(403).json({ message: 'Invalid refresh token' });
+            }
+
+            // Check if the refresh token is already blacklisted
+            const tokenExists = await BlacklistToken.findOne({ token: requestRefreshToken });
+            if (tokenExists) {
+                return res.status(400).json({ message: 'Token already invalidated' });
+            }
+
+            // Save the refresh token to the blacklist collection
+            const newBlacklistToken = new BlacklistToken({
+                token: requestRefreshToken,
+                expiresAt: new Date(Date.now() + (60 * 60 * 24 * 7 * 1000)) 
+            });
+
+            await newBlacklistToken.save();
+
+            res.status(200).json({ message: 'Logged out successfully' });
+            next()
+        });
+    } catch (error) {
+        next(error)
     }
 };
