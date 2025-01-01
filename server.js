@@ -17,7 +17,7 @@ import cors from 'cors'
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 
-const SWAGGER_URL = 'http://localhost:4000/swagger.json';
+const SWAGGER_URL = 'http://16.170.52.223/swagger.json';
 
 const app = express();
 const port = process.env.PORT || 4000;
