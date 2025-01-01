@@ -17,7 +17,7 @@ import cors from 'cors'
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 
-const SWAGGER_URL = 'http://16.170.52.223/swagger.json';
+const SWAGGER_URL = 'https://ntcbusreservation.me/swagger.json';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -107,8 +107,8 @@ app.use(errorMiddleware);
 
 app.listen(port,() => {
     console.log(`Sever run on port ${port}`);
-    console.log(`Server running on http://localhost:${port}`);
-  console.log(`Swagger docs available at http://localhost:${port}/api-docs`);
+    console.log(`Server running on https://ntcbusreservation.me`);
+  console.log(`Swagger docs available at https://ntcbusreservation.me/api-docs`);
 
 })
 

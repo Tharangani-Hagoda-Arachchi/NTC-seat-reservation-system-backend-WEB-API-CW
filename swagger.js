@@ -11,7 +11,7 @@ const swaggerOptions = {
       },
       servers: [
         {
-          url: 'http://16.170.52.223/', // API server URL
+          url: 'https://ntcbusreservation.me/', // API server URL
         },
       ],
       components: {
