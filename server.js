@@ -17,7 +17,7 @@ import cors from 'cors'
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 
-const SWAGGER_URL = 'https://ntcbusreservation.me/swagger.json';
+const SWAGGER_URL = 'https://ntcbusreservation.me/api/swagger.json';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -34,12 +34,12 @@ startBookingCleanupJob();
 
 //swager setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-app.get('/swagger.json', (req, res) => {
+app.get('/api/swagger.json', (req, res) => {
   res.json(swaggerDocs);
 });
 
 // Route to fetch and filter Swagger JSON for 'auth' routes
-app.get('/auth-swagger.json', async (req, res) => {
+app.get('/api/auth-swagger.json', async (req, res) => {
   try {
       const swaggerJson = await fetchSwaggerJson(SWAGGER_URL);
       const filteredSwagger = filterRoutes(swaggerJson, 'auths');
@@ -49,7 +49,7 @@ app.get('/auth-swagger.json', async (req, res) => {
   }
 });
 
-app.get('/route-swagger.json', async (req, res) => {
+app.get('/api/route-swagger.json', async (req, res) => {
   try {
       const swaggerJson = await fetchSwaggerJson(SWAGGER_URL);
       const filteredSwagger = filterRoutes(swaggerJson, 'routes');
@@ -59,7 +59,7 @@ app.get('/route-swagger.json', async (req, res) => {
   }
 });
 
-app.get('/admin-swagger.json', async (req, res) => {
+app.get('/api/admin-swagger.json', async (req, res) => {
   try {
       const swaggerJson = await fetchSwaggerJson(SWAGGER_URL);
       const filteredSwagger = filterRoutes(swaggerJson, 'admins');
@@ -69,7 +69,7 @@ app.get('/admin-swagger.json', async (req, res) => {
   }
 });
 
-app.get('/operator-swagger.json', async (req, res) => {
+app.get('/api/operator-swagger.json', async (req, res) => {
   try {
       const swaggerJson = await fetchSwaggerJson(SWAGGER_URL);
       const filteredSwagger = filterRoutes(swaggerJson, 'operators');
@@ -79,7 +79,7 @@ app.get('/operator-swagger.json', async (req, res) => {
   }
 });
 
-app.get('/bus-swagger.json', async (req, res) => {
+app.get('/api/bus-swagger.json', async (req, res) => {
   try {
       const swaggerJson = await fetchSwaggerJson(SWAGGER_URL);
       const filteredSwagger = filterRoutes(swaggerJson, 'buses');
