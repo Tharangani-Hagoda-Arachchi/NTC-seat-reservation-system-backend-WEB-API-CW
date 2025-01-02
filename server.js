@@ -27,9 +27,12 @@ app.use(express.json());
 dotenv.config();
 app.use(cookieParser());
 
+// server.js or app.js
+
 app.get('/api', (req, res) => {
-  res.json({ status: 'Application is loading...', timestamp: new Date().toISOString() });
+  res.send('<h1>Application is loading...</h1><p>Timestamp: ' + new Date().toISOString() + '</p>');
 });
+
 
 //start cron jobs
 bookingAvalabilityCheckingJob();
