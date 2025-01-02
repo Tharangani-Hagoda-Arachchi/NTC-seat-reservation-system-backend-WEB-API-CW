@@ -27,6 +27,10 @@ app.use(express.json());
 dotenv.config();
 app.use(cookieParser());
 
+app.get('/api', (req, res) => {
+  res.json({ status: 'Application is loading...', timestamp: new Date().toISOString() });
+});
+
 //start cron jobs
 bookingAvalabilityCheckingJob();
 startBookingCleanupJob();
@@ -107,7 +111,7 @@ app.use(errorMiddleware);
 
 app.listen(port,() => {
     console.log(`Sever run on port ${port}`);
-    console.log(`Server running on https://ntcbusreservation.me`);
+    console.log(`Server running on https://ntcbusreservation.me/api`);
   console.log(`Swagger docs available at https://ntcbusreservation.me/api-docs`);
 
 })
